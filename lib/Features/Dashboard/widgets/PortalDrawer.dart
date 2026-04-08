@@ -1,0 +1,151 @@
+import 'package:flutter/material.dart';
+import '../../../core/styles/AppColors.dart';
+import '../../../core/styles/AppTextStyles.dart';
+
+
+class PortalDrawer extends StatelessWidget {
+  final String currentRoute;
+
+  const PortalDrawer({super.key, required this.currentRoute});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: AppColors.background, // Light grey background
+      elevation: 0,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ───────── Header: Logo & Title ─────────
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFC5CE4E), // Custom lime color from image
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.account_balance, size: 24, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Portal',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+
+              // ───────── User Profile Section ─────────
+              const CircleAvatar(
+                radius: 36,
+                backgroundImage: NetworkImage('https://via.placeholder.com/150'), // Replace with actual asset
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Institutional Portal',
+                style: AppTextStyles.screenTitle,
+              ),
+              Text(
+                'ADMINISTRATOR',
+                style: AppTextStyles.description.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // ───────── Navigation Items ─────────
+              _buildNavTile(Icons.dashboard, 'Dashboard', currentRoute == 'dashboard'),
+              _buildNavTile(Icons.layers, 'Services', currentRoute == 'services'),
+              _buildNavTile(Icons.people, 'Subscribers', currentRoute == 'subscribers'),
+              _buildNavTile(Icons.settings, 'Settings', currentRoute == 'settings'),
+
+              const Spacer(),
+
+              // ───────── Status Card ─────────
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STATUS',
+                      style: AppTextStyles.description.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: const [
+                        Icon(Icons.circle, color: AppColors.success, size: 10),
+                        SizedBox(width: 8),
+                        Text(
+                          'Systems Nominal',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ───────── Deployment Footer ─────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'DEPLOYMENT',
+                    style: AppTextStyles.description.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'V1.0.4',
+                    style: AppTextStyles.description.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavTile(IconData icon, String label, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.black : Colors.transparent, // Selected item background
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isSelected ? AppColors.white : AppColors.textSecondary,
+        ),
+        title: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppColors.white : AppColors.textPrimary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 16,
+          ),
+        ),
+        onTap: () {
+          // Add navigation logic here
+        },
+      ),
+    );
+  }
+}
