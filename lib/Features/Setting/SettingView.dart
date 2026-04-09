@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
+import '../Dashboard/widgets/PortalDrawer.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -14,18 +15,22 @@ class _SettingsViewState extends State<SettingsView> {
   bool pushNotifications = true;
   bool emailAlerts = false;
   bool highContrast = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // ← add
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: const PortalDrawer(currentRoute: '/settings'),
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+        leading:IconButton(
+          icon: const Icon(Icons.menu, color: AppColors.textPrimary), // ← menu instead of back
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
+
         title: const Text('Settings', style: AppTextStyles.appBarTitle),
         centerTitle: true,
       ),

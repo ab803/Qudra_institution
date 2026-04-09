@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:qudra_institution/Features/Dashboard/widgets/PortalDrawer.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
 
-class SubscribersView extends StatelessWidget {
+class SubscribersView extends StatefulWidget {        // ← StatefulWidget
   const SubscribersView({super.key});
+
+  @override
+  State<SubscribersView> createState() => _SubscribersViewState();
+}
+
+class _SubscribersViewState extends State<SubscribersView> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // ← key
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,                                             // ← assign key
       backgroundColor: AppColors.background,
+      drawer: const PortalDrawer(currentRoute: '/subscribers'),     // ← drawer
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -19,22 +29,22 @@ class SubscribersView extends StatelessWidget {
                 const SizedBox(height: 16),
                 const Text('Subscribers', style: AppTextStyles.largeTitle),
                 const Text('MANAGEMENT & INSIGHTS',
-                    style: TextStyle(letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        letterSpacing: 1.5,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary)),
                 const SizedBox(height: 32),
-
-                // ───────── Search & Filter ─────────
                 _buildSearchBar(),
                 const SizedBox(height: 12),
                 _buildFilterButton(),
                 const SizedBox(height: 32),
-
-                // ───────── Subscriber List ─────────
                 _buildSubscriberCard(
                   name: 'Elena Rosales',
                   email: 'elena.r@institution.edu',
                   date: 'Oct 12, 2023',
                   status: 'ACTIVE',
-                  statusColor: const Color(0xFFC5CEFF), // Soft blue/purple
+                  statusColor: const Color(0xFFC5CEFF),
                   image: 'https://i.pravatar.cc/150?u=elena',
                 ),
                 _buildSubscriberCard(
@@ -53,7 +63,6 @@ class SubscribersView extends StatelessWidget {
                   statusColor: const Color(0xFFEEEEEE),
                   isInitials: true,
                 ),
-
                 const SizedBox(height: 24),
                 _buildPagination(),
                 const SizedBox(height: 40),
@@ -65,8 +74,6 @@ class SubscribersView extends StatelessWidget {
     );
   }
 
-  // ───────── UI Helper Methods ─────────
-
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
@@ -76,7 +83,8 @@ class SubscribersView extends StatelessWidget {
       child: const TextField(
         decoration: InputDecoration(
           hintText: 'Search by name, email, or ID...',
-          prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
+          prefixIcon:
+          Icon(Icons.search, color: AppColors.textSecondary),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 15),
         ),
@@ -94,7 +102,8 @@ class SubscribersView extends StatelessWidget {
         label: const Text('Filters', style: AppTextStyles.button),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
@@ -124,28 +133,45 @@ class SubscribersView extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: Colors.black,
-                backgroundImage: image != null ? NetworkImage(image) : null,
-                child: isInitials ? const Text('SK', style: TextStyle(color: Colors.white)) : null,
+                backgroundImage:
+                image != null ? NetworkImage(image) : null,
+                child: isInitials
+                    ? const Text('SK',
+                    style: TextStyle(color: Colors.white))
+                    : null,
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: AppTextStyles.fieldLabel.copyWith(fontSize: 18)),
+                  Text(name,
+                      style:
+                      AppTextStyles.fieldLabel.copyWith(fontSize: 18)),
                   Text(email, style: AppTextStyles.description),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20),
-          const Text('JOINED', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textLight)),
+          const Text('JOINED',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textLight)),
           const SizedBox(height: 4),
-          Text(date, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          Text(date,
+              style: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(8)),
-            child: Text(status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+                color: statusColor,
+                borderRadius: BorderRadius.circular(8)),
+            child: Text(status,
+                style: const TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -156,9 +182,12 @@ class SubscribersView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE9E9E9),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
-              child: const Text('View Profile', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text('View Profile',
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -170,7 +199,8 @@ class SubscribersView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('Showing 1-4 of 1,240\nsubscribers', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+        const Text('Showing 1-4 of 1,240\nsubscribers',
+            style: TextStyle(fontSize: 12, color: AppColors.textLight)),
         Row(
           children: [
             _pageBox('<', isIcon: true),
@@ -184,7 +214,8 @@ class SubscribersView extends StatelessWidget {
     );
   }
 
-  Widget _pageBox(String text, {bool active = false, bool isIcon = false}) {
+  Widget _pageBox(String text,
+      {bool active = false, bool isIcon = false}) {
     return Container(
       margin: const EdgeInsets.only(left: 4),
       width: 35,
@@ -194,19 +225,29 @@ class SubscribersView extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       alignment: Alignment.center,
-      child: Text(text, style: TextStyle(color: active ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+      child: Text(text,
+          style: TextStyle(
+              color: active ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold)),
     );
   }
 
+  // ─── AppBar with working menu button ───
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.background,
       elevation: 0,
-      leading: const Icon(Icons.menu, color: AppColors.textPrimary),
+      leading: IconButton(                                           // ← tappable
+        icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
       title: const Text('Qudra', style: AppTextStyles.appBarTitle),
       centerTitle: true,
       actions: const [
-        CircleAvatar(radius: 16, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=admin')),
+        CircleAvatar(
+            radius: 16,
+            backgroundImage:
+            NetworkImage('https://i.pravatar.cc/150?u=admin')),
         SizedBox(width: 24),
       ],
     );

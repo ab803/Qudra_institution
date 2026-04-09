@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:qudra_institution/Features/Dashboard/widgets/PortalDrawer.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
 
-class ServicesView extends StatelessWidget {
+class ServicesView extends StatefulWidget {          // ← StatefulWidget
   const ServicesView({super.key});
+
+  @override
+  State<ServicesView> createState() => _ServicesViewState();
+}
+
+class _ServicesViewState extends State<ServicesView> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // ← key
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,                                          // ← assign key
       backgroundColor: AppColors.background,
+      drawer: const PortalDrawer(currentRoute: '/services'),      // ← drawer
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        leading: const Icon(Icons.menu, color: AppColors.textPrimary),
+        leading: IconButton(                                       // ← tappable menu
+          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        ),
         title: const Text('Services', style: AppTextStyles.appBarTitle),
         actions: [
           Padding(
@@ -73,31 +86,42 @@ class ServicesView extends StatelessWidget {
   Widget _buildIconButton(IconData icon) {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
       child: Icon(icon, size: 20),
     );
   }
 
-  Widget _buildServiceCard(String title, String desc, String status, Color statusColor, String imgUrl) {
+  Widget _buildServiceCard(String title, String desc, String status,
+      Color statusColor, String imgUrl) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(imgUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
+          Image.network(imgUrl,
+              height: 180, width: double.infinity, fit: BoxFit.cover),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                  child: Text(status, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4)),
+                  child: Text(status,
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 12),
-                Text(title, style: AppTextStyles.fieldLabel.copyWith(fontSize: 18)),
+                Text(title,
+                    style: AppTextStyles.fieldLabel.copyWith(fontSize: 18)),
                 const SizedBox(height: 8),
                 Text(desc, style: AppTextStyles.description),
                 const SizedBox(height: 16),
@@ -105,14 +129,17 @@ class ServicesView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black),
                         onPressed: () {},
                         child: const Text('Manage'),
                       ),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: Colors.black),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[200],
+                          foregroundColor: Colors.black),
                       onPressed: () {},
                       child: const Text('Edit'),
                     ),
@@ -126,7 +153,6 @@ class ServicesView extends StatelessWidget {
     );
   }
 
-  // ───────── Portfolio Banner ─────────
   Widget _buildPortfolioBanner() {
     return Container(
       width: double.infinity,
@@ -134,23 +160,16 @@ class ServicesView extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        // Subtle gradient as seen in the top section
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [
-            AppColors.white,
-            AppColors.background.withOpacity(0.3),
-          ],
+          colors: [AppColors.white, AppColors.background.withOpacity(0.3)],
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Service\nPortfolio',
-            style: AppTextStyles.largeTitle,
-          ),
+          const Text('Service\nPortfolio', style: AppTextStyles.largeTitle),
           const SizedBox(height: 16),
           Text(
             'Manage institutional accessibility and specialized facilities from a centralized dashboard.',
@@ -161,12 +180,11 @@ class ServicesView extends StatelessWidget {
     );
   }
 
-  // ───────── Active Nodes Metric ─────────
   Widget _buildActiveNodesMetric() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA), // Off-white/grey background
+        color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -175,32 +193,25 @@ class ServicesView extends StatelessWidget {
           Text(
             'ACTIVE NODES',
             style: AppTextStyles.fieldLabel.copyWith(
-              fontSize: 12,
-              letterSpacing: 1.2,
-              color: AppColors.textSecondary,
-            ),
+                fontSize: 12,
+                letterSpacing: 1.2,
+                color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '12',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          const Text('12',
+              style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.trending_up, color: AppColors.textPrimary, size: 18),
+              const Icon(Icons.trending_up,
+                  color: AppColors.textPrimary, size: 18),
               const SizedBox(width: 8),
-              Text(
-                '+2 from last month',
-                style: AppTextStyles.fieldLabel.copyWith(
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              Text('+2 from last month',
+                  style: AppTextStyles.fieldLabel
+                      .copyWith(fontSize: 14, color: AppColors.textPrimary)),
             ],
           ),
         ],

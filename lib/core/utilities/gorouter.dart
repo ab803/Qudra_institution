@@ -7,6 +7,9 @@ import '../../Features/Auth/forget a password/ResetPassword.dart';
 import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
+import '../../Features/Setting/SettingView.dart';
+import '../../Features/services/ServiceView.dart';
+import '../../Features/subscribers/SubscribersView.dart';
 import 'gettit.dart';
 
 
@@ -68,10 +71,51 @@ class AppRouter {
       // ─────────────────────────────────────────
       // HOME  (uncomment when view is ready)
       // ─────────────────────────────────────────
+      // ─────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────
       GoRoute(
-        path: '/Dashboard',
+        path: '/dashboard',
         pageBuilder: (context, state) => _buildPageWithAnimation(
-          context, state,  Dashboardview(),
+          context,
+          state,
+          const Dashboardview(),
+        ),
+      ),
+
+// ─────────────────────────────────────────
+// SERVICES
+// ─────────────────────────────────────────
+      GoRoute(
+        path: '/services',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          const ServicesView(),
+        ),
+      ),
+
+// ─────────────────────────────────────────
+// SUBSCRIBERS
+// ─────────────────────────────────────────
+      GoRoute(
+        path: '/subscribers',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          const SubscribersView(),
+        ),
+      ),
+
+// ─────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          const SettingsView(),
         ),
       ),
 
