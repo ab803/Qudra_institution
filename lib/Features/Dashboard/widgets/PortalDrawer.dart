@@ -6,7 +6,10 @@ import '../../../core/styles/AppTextStyles.dart';
 class PortalDrawer extends StatelessWidget {
   final String currentRoute;
 
-  const PortalDrawer({super.key, required this.currentRoute});
+  const PortalDrawer({
+    super.key,
+    required this.currentRoute,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,6 @@ class PortalDrawer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ───────── Header ─────────
               Row(
                 children: [
                   Container(
@@ -45,22 +47,18 @@ class PortalDrawer extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 40),
 
-              // ───────── Profile ─────────
               const CircleAvatar(
                 radius: 36,
                 backgroundImage:
                 NetworkImage('https://via.placeholder.com/150'),
               ),
               const SizedBox(height: 16),
-
               const Text(
                 'Institutional Portal',
                 style: AppTextStyles.screenTitle,
               ),
-
               Text(
                 'ADMINISTRATOR',
                 style: AppTextStyles.description.copyWith(
@@ -69,38 +67,39 @@ class PortalDrawer extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-
               const SizedBox(height: 40),
 
-              // ───────── Navigation ─────────
               _buildNavTile(
-                context,
+                context: context,
                 icon: Icons.dashboard,
                 label: 'Dashboard',
-                route: '/dashboard',
+                isSelected: currentRoute == 'dashboard',
+                route: '/Dashboard',
               ),
               _buildNavTile(
-                context,
+                context: context,
                 icon: Icons.layers,
                 label: 'Services',
+                isSelected: currentRoute == 'services',
                 route: '/services',
               ),
               _buildNavTile(
-                context,
+                context: context,
                 icon: Icons.people,
                 label: 'Subscribers',
-                route: '/subscribers',
+                isSelected: currentRoute == 'subscribers',
+                route: null,
               ),
               _buildNavTile(
-                context,
+                context: context,
                 icon: Icons.settings,
                 label: 'Settings',
-                route: '/settings',
+                isSelected: currentRoute == 'settings',
+                route: null,
               ),
 
               const Spacer(),
 
-              // ───────── Status Card ─────────
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -118,10 +117,9 @@ class PortalDrawer extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      children: const [
-                        Icon(Icons.circle,
-                            color: AppColors.success, size: 10),
+                    const Row(
+                      children: [
+                        Icon(Icons.circle, color: AppColors.success, size: 10),
                         SizedBox(width: 8),
                         Text(
                           'Systems Nominal',
@@ -135,10 +133,8 @@ class PortalDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
 
-              // ───────── Footer ─────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -165,17 +161,14 @@ class PortalDrawer extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────
-  // NAV ITEM
-  // ─────────────────────────────────────────
-  Widget _buildNavTile(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required String route,
-      }) {
-    final bool isSelected = currentRoute == route;
-
+  // Navigate only if route exists
+  Widget _buildNavTile({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required String? route,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -185,26 +178,21 @@ class PortalDrawer extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           icon,
-          color:
-          isSelected ? AppColors.white : AppColors.textSecondary,
+          color: isSelected ? AppColors.white : AppColors.textSecondary,
         ),
         title: Text(
           label,
           style: TextStyle(
-            color: isSelected
-                ? AppColors.white
-                : AppColors.textPrimary,
-            fontWeight:
-            isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? AppColors.white : AppColors.textPrimary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 16,
           ),
         ),
-        onTap: () {
-          Navigator.pop(context); // close drawer
-
-          if (!isSelected) {
-            context.go(route); // 🔥 navigation
-          }
+        onTap: route == null
+            ? null
+            : () {
+          Navigator.of(context).pop();
+          context.push(route);
         },
       ),
     );

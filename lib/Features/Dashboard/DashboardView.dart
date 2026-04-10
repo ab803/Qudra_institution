@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/ChartSection.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/MetricCard.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/PromoBanner.dart';
@@ -15,17 +16,14 @@ class Dashboardview extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<Dashboardview> {
-  // 1. Create the GlobalKey to control the Scaffold
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 2. Assign the key to the Scaffold
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      // 3. Add the PortalDrawer here
       drawer: const PortalDrawer(currentRoute: 'dashboard'),
       body: SingleChildScrollView(
         child: Padding(
@@ -42,6 +40,7 @@ class _OverviewScreenState extends State<Dashboardview> {
               ),
               const SizedBox(height: 32),
 
+              // Static dashboard cards for now
               const MetricCard(
                 title: 'TOTAL SUBSCRIBERS',
                 value: '12,842',
@@ -69,28 +68,29 @@ class _OverviewScreenState extends State<Dashboardview> {
                 isWhiteCard: false,
               ),
               const SizedBox(height: 32),
-
               const ChartSection(),
               const SizedBox(height: 32),
-
               const Text('Quick Actions', style: AppTextStyles.screenTitle),
               const SizedBox(height: 16),
+
               QuickActionButton(
-                title: 'Upgrade Subscription',
-                icon: Icons.stars,
+                title: 'Manage Services',
+                icon: Icons.layers,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () {},
+                onPressed: () => context.push('/services'),
               ),
               const SizedBox(height: 12),
+
               QuickActionButton(
                 title: 'Add Service',
                 icon: Icons.add,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () {},
+                onPressed: () => context.push('/services/add'),
               ),
               const SizedBox(height: 12),
+
               QuickActionButton(
                 title: 'Message Subscribers',
                 icon: Icons.send,
@@ -114,22 +114,21 @@ class _OverviewScreenState extends State<Dashboardview> {
       elevation: 0,
       leading: IconButton(
         onPressed: () {
-          // 4. Use the key to open the drawer
           _scaffoldKey.currentState?.openDrawer();
         },
         icon: const Icon(Icons.menu, color: AppColors.textPrimary),
       ),
       title: const Text('QUDRA', style: AppTextStyles.appBarTitle),
       centerTitle: true,
-      actions: [
-        const Icon(Icons.notifications_none, color: AppColors.textPrimary),
-        const SizedBox(width: 8),
-        const CircleAvatar(
+      actions: const [
+        Icon(Icons.notifications_none, color: AppColors.textPrimary),
+        SizedBox(width: 8),
+        CircleAvatar(
           radius: 16,
           backgroundColor: AppColors.secondary,
           child: Icon(Icons.person, color: AppColors.white, size: 20),
         ),
-        const SizedBox(width: 24),
+        SizedBox(width: 24),
       ],
     );
   }

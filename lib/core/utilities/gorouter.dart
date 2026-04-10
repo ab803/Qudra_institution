@@ -1,79 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../Features/Auth/ViewModel/auth_cubit.dart';
 import '../../Features/Auth/forget a password/ForgetPassword.dart';
 import '../../Features/Auth/forget a password/ResetPassword.dart';
 import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
-import '../../Features/Setting/SettingView.dart';
-import '../../Features/services/ServiceView.dart';
-import '../../Features/subscribers/SubscribersView.dart';
+import '../../Features/Services/viewmodel/services_cubit.dart';
+import '../../Features/Services/views/add_edit_service_view.dart';
+import '../../Features/Services/views/services_list_view.dart';
+import '../Models/service_model.dart';
 import 'gettit.dart';
-
-
 
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/institutionLogin',
     routes: [
-
-      // ─────────────────────────────────────────
-      // LOGIN
-      // ─────────────────────────────────────────
       GoRoute(
-      path: '/institutionLogin',
-      builder: (context, state) {
-
-        return BlocProvider.value(
-          value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-          child: const InstitutionLoginView(),
-        );
-      }),
-
-      // ─────────────────────────────────────────
-      // SIGN UP
-      // ─────────────────────────────────────────
+        path: '/institutionLogin',
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const InstitutionLoginView(),
+          );
+        },
+      ),
       GoRoute(
         path: '/institutionSignUp',
-          builder: (context, state) {
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: const InstitutionSignUpView(),
-            );
-          }
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const InstitutionSignUpView(),
+          );
+        },
       ),
-
       GoRoute(
-          path: '/ForgetPassword',
-          builder: (context, state) {
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: const ForgotPasswordScreen(),
-            );
-          }),
+        path: '/ForgetPassword',
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const ForgotPasswordScreen(),
+          );
+        },
+      ),
       GoRoute(
-          path: '/ResetPassword',
-          builder: (context, state) {
-            final email = state.extra as String;
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: ResetPasswordScreen(email: email,),
-            );
-          }),
-
-
-
-      // ─────────────────────────────────────────
-      // HOME  (uncomment when view is ready)
-      // ─────────────────────────────────────────
-      // ─────────────────────────────────────────
-// DASHBOARD
-// ─────────────────────────────────────────
+        path: '/ResetPassword',
+        builder: (context, state) {
+          final email = state.extra as String;
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: ResetPasswordScreen(email: email),
+          );
+        },
+      ),
       GoRoute(
         path: '/dashboard',
         pageBuilder: (context, state) => _buildPageWithAnimation(
@@ -83,48 +64,43 @@ class AppRouter {
         ),
       ),
 
-// ─────────────────────────────────────────
-// SERVICES
-// ─────────────────────────────────────────
+      // Services list route
       GoRoute(
         path: '/services',
-        pageBuilder: (context, state) => _buildPageWithAnimation(
-          context,
-          state,
-          const ServicesView(),
-        ),
+        builder: (context, state) {
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: const ServicesListView(),
+          );
+        },
       ),
 
-// ─────────────────────────────────────────
-// SUBSCRIBERS
-// ─────────────────────────────────────────
+      // Add service route
       GoRoute(
-        path: '/subscribers',
-        pageBuilder: (context, state) => _buildPageWithAnimation(
-          context,
-          state,
-          const SubscribersView(),
-        ),
+        path: '/services/add',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: const AddEditServiceView(),
+          );
+        },
       ),
 
-// ─────────────────────────────────────────
-// SETTINGS
-// ─────────────────────────────────────────
+      // Edit service route
       GoRoute(
-        path: '/settings',
-        pageBuilder: (context, state) => _buildPageWithAnimation(
-          context,
-          state,
-          const SettingsView(),
-        ),
+        path: '/services/edit',
+        builder: (context, state) {
+          final service = state.extra as ServiceModel;
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: AddEditServiceView(existingService: service),
+          );
+        },
       ),
-
     ],
   );
 
-  // ─────────────────────────────────────────
-  // ANIMATION BUILDER
-  // ─────────────────────────────────────────
+  // Build animated page transition
   static CustomTransitionPage _buildPageWithAnimation(
       BuildContext context,
       GoRouterState state,
