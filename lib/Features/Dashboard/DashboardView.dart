@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/ChartSection.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/MetricCard.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/PromoBanner.dart';
@@ -76,11 +77,13 @@ class _OverviewScreenState extends State<Dashboardview> {
               const Text('Quick Actions', style: AppTextStyles.screenTitle),
               const SizedBox(height: 16),
               QuickActionButton(
-                title: 'Upgrade Subscription',
+                title: 'Manage Subscription',
                 icon: Icons.stars,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () {},
+                onPressed: () {
+                  context.go('/subscription');
+                },
               ),
               const SizedBox(height: 12),
               QuickActionButton(

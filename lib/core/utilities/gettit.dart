@@ -1,12 +1,22 @@
 import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../Features/Auth/repo/InstitutionRepository.dart';
 import '../../Features/Auth/repo/InstitutionRepositoryImpl.dart';
 import '../../Features/Auth/ViewModel/auth_cubit.dart';  // ← lowercase 'v'
+import '../../Features/subscribtion/repo/BundleRepo.dart';
+import '../../Features/subscribtion/repo/SubscribtionInstitution.dart';
+import '../../Features/subscribtion/viewModel/bundle_cubit.dart';
+import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
+import '../supabase/BundleService.dart';
 import '../supabase/institutionservice.dart';
+import '../supabase/subscribtionService.dart';
 
 final sl = GetIt.instance;
 
 void setupLocator() {
+  sl.registerLazySingleton<SupabaseClient>(
+        () => Supabase.instance.client,  // ← ADD THIS FIRST
+  );
   // ─────────────── SERVICES ───────────────
   sl.registerLazySingleton<InstitutionService>(
         () => InstitutionService(),
@@ -22,5 +32,38 @@ void setupLocator() {
   // ─────────────── CUBIT ──────────────────
   sl.registerLazySingleton<InstitutionAuthCubit>(   // ✅ singleton, not factory
         () => InstitutionAuthCubit(sl<IInstitutionRepository>()),
+  );
+
+  // In your service_locator.dart
+  sl.registerLazySingleton<SubscriptionInstitutionService>(
+        () => SubscriptionInstitutionService(sl<SupabaseClient>()),
+  );
+
+  sl.registerLazySingleton<SubscribtionInstitutionRepository>(
+        () => SubscribtionInstitutionRepository(
+          sl<SubscriptionInstitutionService>(),
+    ),
+  );
+
+// Factory since it holds transient UI state
+  sl.registerFactory<SubscriptionInstitutionCubit>(
+        () => SubscriptionInstitutionCubit(
+          sl<SubscribtionInstitutionRepository>(),
+    ),
+  );
+
+
+
+  // ─────────────── BUNDLE ─────────────────
+  sl.registerLazySingleton<BundleService>(
+        () => BundleService(sl<SupabaseClient>()),
+  );
+
+  sl.registerLazySingleton<BundleRepository>(
+        () => BundleRepository(sl<BundleService>()),
+  );
+
+  sl.registerFactory<BundleCubit>(
+        () => BundleCubit(sl<BundleRepository>()),
   );
 }

@@ -45,7 +45,7 @@ class _InstitutionLoginViewState
     return BlocListener<InstitutionAuthCubit, InstitutionAuthState>(
       listener: (context, state) {
         if (state is InstitutionLoginSuccess) {
-          context.go('/dashboard');
+          context.go('/Dashboard');
         } else if (state is InstitutionAuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

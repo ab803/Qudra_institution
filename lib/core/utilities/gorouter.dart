@@ -10,6 +10,9 @@ import '../../Features/Dashboard/DashboardView.dart';
 import '../../Features/Setting/SettingView.dart';
 import '../../Features/services/ServiceView.dart';
 import '../../Features/subscribers/SubscribersView.dart';
+import '../../Features/subscribtion/subscribtionView.dart';
+import '../../Features/subscribtion/viewModel/bundle_cubit.dart';
+import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
 import 'gettit.dart';
 
 
@@ -23,20 +26,20 @@ class AppRouter {
       // LOGIN
       // ─────────────────────────────────────────
       GoRoute(
-      path: '/institutionLogin',
-      builder: (context, state) {
+          path: '/institutionLogin',
+          builder: (context, state) {
 
-        return BlocProvider.value(
-          value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-          child: const InstitutionLoginView(),
-        );
-      }),
+            return BlocProvider.value(
+              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
+              child: const InstitutionLoginView(),
+            );
+          }),
 
       // ─────────────────────────────────────────
       // SIGN UP
       // ─────────────────────────────────────────
       GoRoute(
-        path: '/institutionSignUp',
+          path: '/institutionSignUp',
           builder: (context, state) {
 
             return BlocProvider.value(
@@ -75,7 +78,7 @@ class AppRouter {
 // DASHBOARD
 // ─────────────────────────────────────────
       GoRoute(
-        path: '/dashboard',
+        path: '/Dashboard',
         pageBuilder: (context, state) => _buildPageWithAnimation(
           context,
           state,
@@ -117,6 +120,18 @@ class AppRouter {
           state,
           const SettingsView(),
         ),
+      ),
+
+      // In your GoRouter or wherever you push this screen
+      GoRoute(
+        path: '/subscription',
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<BundleCubit>()),
+            BlocProvider(create: (_) => sl<SubscriptionInstitutionCubit>()),
+          ],
+          child: const SubscriptionView(),
+        )
       ),
 
     ],

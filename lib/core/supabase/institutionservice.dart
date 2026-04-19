@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../Models/institutionModel.dart';
+import 'institutionStatus.dart';
 
 class InstitutionService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -17,32 +18,40 @@ class InstitutionService {
     required String location,
   }) async {
     try {
-      // ✅ Step 1: Create auth user
+      // 1️⃣ Create auth user
       final authResponse = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
 
-      // ✅ FIX: Get userId safely
-      final userId = authResponse.user!.id;
+      final user = authResponse.user;
+      if (user == null) {
+        throw Exception('User creation failed');
+      }
 
+      final userId = user.id;
 
-
-      // ✅ Step 2: Insert into institutions table
+      // 2️⃣ Create institution model
       final data = InstitutionModel(
-         id : userId,
-         createdAt: DateTime.now(),
-         name: name,
-         email: email,
-         phone: phone,
-         address: address,
-         institutionType : institutionType,
-         location: location,
+        id: userId,
+        createdAt: DateTime.now(),
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        institutionType: institutionType,
+        location: location,
+        status: InstitutionStatus.pending, // ✅ مهم
       );
 
-      await _supabase.from('institutions').upsert(data.toJson());
+      // 3️⃣ Insert into DB + return inserted row
+      final response = await _supabase
+          .from('institutions')
+          .upsert(data.toJson())
+          .select()
+          .single();
 
-      return data;
+      return InstitutionModel.fromJson(response);
     } on AuthException catch (e) {
       throw Exception('Registration error: ${e.message}');
     } on PostgrestException catch (e) {
@@ -86,6 +95,24 @@ class InstitutionService {
       return InstitutionModel.fromJson(response);
     } on PostgrestException catch (e) {
       throw Exception('Failed to fetch profile: ${e.message}');
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // UPDATE PROFILE (🔥 مهم جدًا)
+  // ─────────────────────────────────────────
+  Future<InstitutionModel> updateProfile(InstitutionModel model) async {
+    try {
+      final response = await _supabase
+          .from('institutions')
+          .update(model.toJson())
+          .eq('id', model.id)
+          .select()
+          .single();
+
+      return InstitutionModel.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw Exception('Update failed: ${e.message}');
     }
   }
 
