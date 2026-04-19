@@ -262,35 +262,37 @@ class _PaymentViewState extends State<PaymentView> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.bundle.name,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(
-                widget.bundle.description ?? 'Monthly Subscription',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('\$${widget.bundle.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 4),
-              Text('/ mo',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-            ],
-          ),
-        ],
+      child: Expanded(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.bundle.name,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(
+                  widget.bundle.description ?? 'Monthly Subscription',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('\$${widget.bundle.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 4),
+                Text('/ mo',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
