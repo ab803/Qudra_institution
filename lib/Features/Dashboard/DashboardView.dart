@@ -7,6 +7,7 @@ import 'package:qudra_institution/Features/Dashboard/widgets/QuickActionButton.d
 import 'package:qudra_institution/Features/Dashboard/widgets/PortalDrawer.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
+import 'helper.dart'; // 👈 import
 
 class Dashboardview extends StatefulWidget {
   const Dashboardview({super.key});
@@ -16,17 +17,14 @@ class Dashboardview extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<Dashboardview> {
-  // 1. Create the GlobalKey to control the Scaffold
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 2. Assign the key to the Scaffold
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      // 3. Add the PortalDrawer here
       drawer: const PortalDrawer(currentRoute: 'dashboard'),
       body: SingleChildScrollView(
         child: Padding(
@@ -76,48 +74,61 @@ class _OverviewScreenState extends State<Dashboardview> {
 
               const Text('Quick Actions', style: AppTextStyles.screenTitle),
               const SizedBox(height: 16),
+
               QuickActionButton(
                 title: 'Manage Subscription',
                 icon: Icons.stars,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () {
-                  context.go('/subscription');
-                },
+                onPressed: () => context.go('/subscription'),
               ),
               const SizedBox(height: 12),
 
-
+              // 🔒 Guard: requires subscription
               QuickActionButton(
                 title: 'Manage Services',
                 icon: Icons.layers,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () => context.push('/services'),
+                onPressed: () async {
+                  final allowed = await checkSubscription(context);
+                  if (allowed && context.mounted) {
+                    context.push('/services');
+                  }
+                },
               ),
               const SizedBox(height: 12),
 
-
+              // 🔒 Guard: requires subscription
               QuickActionButton(
                 title: 'Add Service',
                 icon: Icons.add,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () => context.push('/services/add'),
+                onPressed: () async {
+                  final allowed = await checkSubscription(context);
+                  if (allowed && context.mounted) {
+                    context.push('/services/add');
+                  }
+                },
               ),
               const SizedBox(height: 12),
 
-
+              // 🔒 Guard: requires subscription
               QuickActionButton(
                 title: 'View Bookings',
                 icon: Icons.book_online,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () => context.push('/bookings'),
+                onPressed: () async {
+                  final allowed = await checkSubscription(context);
+                  if (allowed && context.mounted) {
+                    context.push('/bookings');
+                  }
+                },
               ),
+              const SizedBox(height: 12),
 
-              const SizedBox(height: 12),
-              const SizedBox(height: 12),
               QuickActionButton(
                 title: 'Message Subscribers',
                 icon: Icons.send,
@@ -140,10 +151,7 @@ class _OverviewScreenState extends State<Dashboardview> {
       backgroundColor: AppColors.background,
       elevation: 0,
       leading: IconButton(
-        onPressed: () {
-          // 4. Use the key to open the drawer
-          _scaffoldKey.currentState?.openDrawer();
-        },
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         icon: const Icon(Icons.menu, color: AppColors.textPrimary),
       ),
       title: const Text('QUDRA', style: AppTextStyles.appBarTitle),

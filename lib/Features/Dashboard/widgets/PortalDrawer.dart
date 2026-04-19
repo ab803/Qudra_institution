@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/styles/AppColors.dart';
 import '../../../core/styles/AppTextStyles.dart';
+import '../helper.dart';
 
 class PortalDrawer extends StatelessWidget {
   final String currentRoute;
@@ -84,6 +85,7 @@ class PortalDrawer extends StatelessWidget {
                 icon: Icons.layers,
                 label: 'Services',
                 route: '/services',
+                requiresSubscription: true, // 👈
               ),
 
               _buildNavTile(
@@ -185,6 +187,7 @@ class PortalDrawer extends StatelessWidget {
         required IconData icon,
         required String label,
         required String route,
+        bool requiresSubscription = false, // 👈
       }) {
     final bool isSelected = currentRoute == route;
 
@@ -195,27 +198,31 @@ class PortalDrawer extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color:
-          isSelected ? AppColors.white : AppColors.textSecondary,
-        ),
+        leading: Icon(icon,
+            color: isSelected ? AppColors.white : AppColors.textSecondary),
         title: Text(
           label,
           style: TextStyle(
-            color: isSelected
-                ? AppColors.white
-                : AppColors.textPrimary,
-            fontWeight:
-            isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? AppColors.white : AppColors.textPrimary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 16,
           ),
         ),
-        onTap: () {
-          Navigator.pop(context); // close drawer
-
+        // 🔒 lock icon badge for guarded routes
+        trailing: requiresSubscription
+            ? Icon(Icons.lock_outline,
+            size: 16,
+            color: isSelected ? AppColors.white : AppColors.textSecondary)
+            : null,
+        onTap: () async {
+          Navigator.pop(context);
           if (!isSelected) {
-            context.go(route); // 🔥 navigation
+            if (requiresSubscription) {
+              final allowed = await checkSubscription(context);
+              if (allowed && context.mounted) context.go(route);
+            } else {
+              context.go(route);
+            }
           }
         },
       ),

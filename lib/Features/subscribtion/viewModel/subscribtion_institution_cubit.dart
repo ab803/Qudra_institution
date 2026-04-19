@@ -1,6 +1,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qudra_institution/Features/subscribtion/viewModel/subscribtion_institution_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/Models/subscribtionModel.dart';
 import '../repo/SubscribtionInstitution.dart';
 
@@ -27,6 +28,11 @@ class SubscriptionInstitutionCubit
     emit(SubscribtionInstitutionLoading());
     try {
       final created = await _repository.create(model);
+       await Supabase.instance.client
+          .from('institutions')
+          .update({'subscribed': true})
+          .eq('id', model.institutionId)
+          .select();
       emit(SubscribtionInstitutionSuccess(created));
     } catch (e) {
       emit(SubscribtionInstitutionError(e.toString()));

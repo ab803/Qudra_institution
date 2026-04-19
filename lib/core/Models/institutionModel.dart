@@ -8,6 +8,7 @@ class InstitutionModel {
   final String institutionType;
   final String location;
   final String status;
+  final bool subscribed;
 
   const InstitutionModel({
     required this.id,
@@ -19,13 +20,12 @@ class InstitutionModel {
     required this.institutionType,
     required this.location,
     required this.status,
+    required this.subscribed,
   });
 
   factory InstitutionModel.fromJson(Map<String, dynamic> json) {
     return InstitutionModel(
       id: json['id'] as String,
-
-      // ✅ FIX هنا
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -36,7 +36,8 @@ class InstitutionModel {
       address: json['address'] as String?,
       institutionType: json['institution_type'] as String,
       location: json['location'] as String,
-      status: json['status'] as String? ?? 'pending', // ✅ default value
+      status: json['status'] as String? ?? 'pending',
+      subscribed: json['subscribed'] as bool? ?? false, // ✅ default value
     );
   }
 
@@ -48,7 +49,8 @@ class InstitutionModel {
     'address': address,
     'institution_type': institutionType,
     'location': location,
-    'status': status, // ✅ هنا
+    'status': status,
+    'subscribed': subscribed, // ✅ هنا
   };
 
   InstitutionModel copyWith({
@@ -61,6 +63,7 @@ class InstitutionModel {
     String? institutionType,
     String? location,
     String? status,
+    bool? subscribed,
   }) {
     return InstitutionModel(
       id: id ?? this.id,
@@ -72,6 +75,7 @@ class InstitutionModel {
       institutionType: institutionType ?? this.institutionType,
       location: location ?? this.location,
       status: status ?? this.status,
+      subscribed: subscribed ?? this.subscribed,
     );
   }
 }

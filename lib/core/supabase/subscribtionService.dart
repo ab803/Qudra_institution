@@ -27,6 +27,7 @@ class SubscriptionInstitutionService {
         .select()
         .single();
 
+
     return SubscribtionInstitutionmodel.fromJson(response);
   }
 

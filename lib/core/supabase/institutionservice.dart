@@ -41,7 +41,8 @@ class InstitutionService {
         address: address,
         institutionType: institutionType,
         location: location,
-        status: InstitutionStatus.pending, // ✅ مهم
+        status: InstitutionStatus.pending,
+        subscribed: false,
       );
 
       // 3️⃣ Insert into DB + return inserted row

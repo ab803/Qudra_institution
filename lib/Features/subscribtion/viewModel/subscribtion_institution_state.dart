@@ -15,6 +15,7 @@ class SubscribtionInstitutionLoaded extends SubscribtionInstitutionState {
 
 class SubscribtionInstitutionSuccess extends SubscribtionInstitutionState {
   final SubscribtionInstitutionmodel subscription;
+
   SubscribtionInstitutionSuccess(this.subscription);
 }
 
