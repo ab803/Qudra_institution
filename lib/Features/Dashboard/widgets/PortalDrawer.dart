@@ -85,6 +85,14 @@ class PortalDrawer extends StatelessWidget {
                 label: 'Services',
                 route: '/services',
               ),
+
+              _buildNavTile(
+                context,
+                icon: Icons.book_online,
+                label: 'Bookings',
+                route: '/bookings',
+              ),
+
               _buildNavTile(
                 context,
                 icon: Icons.people,
@@ -98,7 +106,11 @@ class PortalDrawer extends StatelessWidget {
                 route: '/settings',
               ),
 
+
+
               const Spacer(),
+
+
 
               // ───────── Status Card ─────────
               Container(

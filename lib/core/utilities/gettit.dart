@@ -10,6 +10,13 @@ import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dar
 import '../supabase/BundleService.dart';
 import '../supabase/institutionservice.dart';
 import '../supabase/subscribtionService.dart';
+import '../../Features/Bookings/services/institution_bookings_service.dart';
+import '../../Features/Bookings/viewmodel/institution_bookings_cubit.dart';
+
+import '../../Features/Services/services/services_service.dart';
+import '../../Features/Services/viewmodel/services_cubit.dart';
+
+
 
 final sl = GetIt.instance;
 
@@ -53,6 +60,16 @@ void setupLocator() {
   );
 
 
+// Register services feature service
+  sl.registerLazySingleton<ServicesService>(
+        () => ServicesService(),
+  );
+
+  // Register services cubit
+  sl.registerFactory<ServicesCubit>(
+        () => ServicesCubit(sl<ServicesService>()),
+  );
+
 
   // ─────────────── BUNDLE ─────────────────
   sl.registerLazySingleton<BundleService>(
@@ -65,5 +82,15 @@ void setupLocator() {
 
   sl.registerFactory<BundleCubit>(
         () => BundleCubit(sl<BundleRepository>()),
+  );
+
+  // Register institution bookings feature service.
+  sl.registerLazySingleton<InstitutionBookingsService>(
+        () => InstitutionBookingsService(),
+  );
+
+  // Register institution bookings feature cubit.
+  sl.registerFactory<InstitutionBookingsCubit>(
+        () => InstitutionBookingsCubit(sl<InstitutionBookingsService>()),
   );
 }

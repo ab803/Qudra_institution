@@ -86,13 +86,37 @@ class _OverviewScreenState extends State<Dashboardview> {
                 },
               ),
               const SizedBox(height: 12),
+
+
+              QuickActionButton(
+                title: 'Manage Services',
+                icon: Icons.layers,
+                bgColor: AppColors.textPrimary,
+                textColor: AppColors.white,
+                onPressed: () => context.push('/services'),
+              ),
+              const SizedBox(height: 12),
+
+
               QuickActionButton(
                 title: 'Add Service',
                 icon: Icons.add,
                 bgColor: AppColors.textPrimary,
                 textColor: AppColors.white,
-                onPressed: () {},
+                onPressed: () => context.push('/services/add'),
               ),
+              const SizedBox(height: 12),
+
+
+              QuickActionButton(
+                title: 'View Bookings',
+                icon: Icons.book_online,
+                bgColor: AppColors.textPrimary,
+                textColor: AppColors.white,
+                onPressed: () => context.push('/bookings'),
+              ),
+
+              const SizedBox(height: 12),
               const SizedBox(height: 12),
               QuickActionButton(
                 title: 'Message Subscribers',

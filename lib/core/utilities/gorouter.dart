@@ -9,14 +9,22 @@ import '../../Features/Auth/forget a password/ResetPassword.dart';
 import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
+import '../../Features/Services/services/Models/service_model.dart';
 import '../../Features/Setting/SettingView.dart';
-import '../../Features/services/ServiceView.dart';
+import '../../Features/services/views/ServiceView.dart';
 import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribtion/subscribtionView.dart';
 import '../../Features/subscribtion/viewModel/bundle_cubit.dart';
 import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
 import '../Models/BundleModel.dart';
 import 'gettit.dart';
+import '../../Features/Bookings/viewmodel/institution_bookings_cubit.dart';
+import '../../Features/Bookings/views/institution_bookings_view.dart';
+
+
+import '../../Features/Services/viewmodel/services_cubit.dart';
+import '../../Features/Services/views/add_edit_service_view.dart';
+import '../../Features/Services/views/services_list_view.dart';
 
 
 
@@ -24,6 +32,46 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/institutionLogin',
     routes: [
+
+
+
+
+// Services list route
+      GoRoute(
+        path: '/services',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: const ServicesListView(),
+          );
+        },
+      ),
+
+
+      // Add service route
+      GoRoute(
+        path: '/services/add',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: const AddEditServiceView(),
+          );
+        },
+      ),
+
+// Edit service route
+      GoRoute(
+        path: '/services/edit',
+        builder: (context, state) {
+          final service = state.extra as ServiceModel;
+          return BlocProvider(
+            create: (_) => sl<ServicesCubit>(),
+            child: AddEditServiceView(existingService: service),
+          );
+        },
+      ),
+
+
 
       // ─────────────────────────────────────────
       // LOGIN
@@ -72,7 +120,16 @@ class AppRouter {
             );
           }),
 
-
+// Institution bookings route
+      GoRoute(
+        path: '/bookings',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (_) => sl<InstitutionBookingsCubit>(),
+            child: const InstitutionBookingsView(),
+          );
+        },
+      ),
 
       // ─────────────────────────────────────────
       // HOME  (uncomment when view is ready)
@@ -97,7 +154,7 @@ class AppRouter {
         pageBuilder: (context, state) => _buildPageWithAnimation(
           context,
           state,
-          const ServicesView(),
+          const  ServicesView(),
         ),
       ),
 
@@ -149,7 +206,12 @@ class AppRouter {
       ),
 
     ],
+
+
+
   );
+
+
 
   // ─────────────────────────────────────────
   // ANIMATION BUILDER

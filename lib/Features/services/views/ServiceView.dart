@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/PortalDrawer.dart';
-import '../../core/styles/AppColors.dart';
-import '../../core/styles/AppTextStyles.dart';
+import '../../../core/styles/AppColors.dart';
+import '../../../core/styles/AppTextStyles.dart';
 
 class ServicesView extends StatefulWidget {          // ← StatefulWidget
   const ServicesView({super.key});
