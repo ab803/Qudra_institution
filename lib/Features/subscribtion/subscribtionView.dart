@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qudra_institution/Features/subscribtion/viewModel/bundle_cubit.dart';
 import 'package:qudra_institution/Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
 import 'package:qudra_institution/Features/subscribtion/viewModel/subscribtion_institution_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/Models/BundleModel.dart';
-import '../../../core/Models/subscribtionModel.dart';
 
 
 class SubscriptionView extends StatefulWidget {
@@ -25,24 +24,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
   }
 
   void _onSubscribe(BuildContext context, BundleModel bundle) {
-    final institutionId =
-        Supabase.instance.client.auth.currentUser?.id ?? '';
-
-
-    final model = SubscribtionInstitutionmodel(
-      id:0,
-      amount: bundle.price.toInt(),
-      institutionId: institutionId,
-      paymentMethod: 'cash',
-      startDate: DateTime.now(),
-      endDate: DateTime.now().add(const Duration(days: 30)),
-      bundleId: bundle.id,
-      createdAt:  DateTime.now(),
-    );
-
-    context
-        .read<SubscriptionInstitutionCubit>()
-        .createSubscription(model);
+    context.push('/payment', extra: bundle);
   }
 
   @override
@@ -52,7 +34,9 @@ class _SubscriptionViewState extends State<SubscriptionView> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const BackButton(color: Colors.black),
+        leading: BackButton(color: Colors.black, onPressed: (){
+          context.go("/Dashboard");
+        },),
         title: const Text(
           'Subscription',
           style: TextStyle(color: Colors.black, fontSize: 16),
@@ -122,8 +106,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                       children: bundleState.bundles
                           .map((bundle) => _BundleCard(
                         bundle: bundle,
-                        isSelected:
-                        _selectedBundleId == bundle.id,
+                        isSelected: _selectedBundleId == bundle.id,
                         onSelect: () => setState(
                                 () => _selectedBundleId = bundle.id),
                         onSubscribe: () =>
@@ -225,7 +208,8 @@ class _BundleCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : const Color(0xFF1A1A2E),
+                      color:
+                      isSelected ? Colors.white : const Color(0xFF1A1A2E),
                     ),
                   ),
                 ),

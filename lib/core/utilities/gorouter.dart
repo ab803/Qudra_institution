@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qudra_institution/Features/subscribtion/repo/SubscribtionInstitution.dart';
+import 'package:qudra_institution/Features/subscribtion/widgets/PaymentView.dart';
 import '../../Features/Auth/ViewModel/auth_cubit.dart';
 import '../../Features/Auth/forget a password/ForgetPassword.dart';
 import '../../Features/Auth/forget a password/ResetPassword.dart';
@@ -13,6 +15,7 @@ import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribtion/subscribtionView.dart';
 import '../../Features/subscribtion/viewModel/bundle_cubit.dart';
 import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
+import '../Models/BundleModel.dart';
 import 'gettit.dart';
 
 
@@ -132,6 +135,17 @@ class AppRouter {
           ],
           child: const SubscriptionView(),
         )
+      ),
+
+      GoRoute(
+        path: "/payment",
+        builder: (context, state) {
+          final bundle = state.extra as BundleModel;
+          return BlocProvider(
+            create: (_) => SubscriptionInstitutionCubit(sl<SubscribtionInstitutionRepository                      >()),
+            child: PaymentView(bundle: bundle),
+          );
+        },
       ),
 
     ],
