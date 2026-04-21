@@ -8,6 +8,7 @@ import '../ViewModel/auth_state.dart';
 import '../widgets/AppTextField.dart';
 import '../widgets/AuthButton.dart';
 import '../widgets/passwordField.dart';
+import 'helper.dart';
 
 
 class InstitutionLoginView extends StatefulWidget {
@@ -45,7 +46,7 @@ class _InstitutionLoginViewState
     return BlocListener<InstitutionAuthCubit, InstitutionAuthState>(
       listener: (context, state) {
         if (state is InstitutionLoginSuccess) {
-          context.go('/Dashboard');
+          checkInstitutionStatus(context);
         } else if (state is InstitutionAuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

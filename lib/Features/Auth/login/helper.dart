@@ -1,55 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/styles/AppColors.dart';
+import '../../../core/styles/AppColors.dart';
 
-Future<bool> checkSubscription(BuildContext context) async {
+
+Future<void> checkInstitutionStatus(BuildContext context) async {
   try {
     final id = Supabase.instance.client.auth.currentUser?.id;
-    if (id == null) return false;
+    if (id == null) return;
 
-    // 1. Check subscribed flag
-    final institutionRes = await Supabase.instance.client
+    final res = await Supabase.instance.client
         .from('institutions')
-        .select('subscribed')
+        .select('status')
         .eq('id', id)
         .single();
 
-    if (institutionRes['subscribed'] != true) {
-      if (context.mounted) _showNotSubscribedDialog(context);
-      return false;
+    final status = res['status'] as String? ?? 'pending';
+
+    if (!context.mounted) return;
+
+    switch (status) {
+      case 'active':
+        context.go('/Dashboard');
+        break;
+      case 'pending':
+        _showPendingDialog(context);
+        break;
+      case 'refused':
+        _showRefusedDialog(context);
+        break;
+      default:
+        _showPendingDialog(context);
     }
-
-    // 2. Check subscription end date
-    final subscriptionRes = await Supabase.instance.client
-        .from('subscriptions')
-        .select('end_date')
-        .eq('institution_id', id)
-        .order('end_date', ascending: false)
-        .limit(1)
-        .single();
-
-    final endDate = DateTime.tryParse(subscriptionRes['end_date'] ?? '');
-
-    if (endDate == null || DateTime.now().isAfter(endDate) ||
-        DateTime.now().isAtSameMomentAs(endDate)) {
-      // 3. Expired — reset subscribed to false
-      await Supabase.instance.client
-          .from('institutions')
-          .update({'subscribed': false})
-          .eq('id', id);
-
-      if (context.mounted) _showExpiredDialog(context);
-      return false;
-    }
-
-    return true;
   } catch (e) {
-    return false;
+    // handle silently or show snackbar
   }
 }
 
-void _showNotSubscribedDialog(BuildContext context) {
+void _showPendingDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
@@ -60,14 +48,18 @@ void _showNotSubscribedDialog(BuildContext context) {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.1),
+              color: const Color(0xFFFFF3CD),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.lock_outline, color: AppColors.error, size: 20),
+            child: const Icon(
+              Icons.hourglass_top_rounded,
+              color: Color(0xFFF59E0B),
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           const Text(
-            'No Active Subscription',
+            'Under Review',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
@@ -77,8 +69,8 @@ void _showNotSubscribedDialog(BuildContext context) {
         ],
       ),
       content: const Text(
-        'You need an active subscription to access this feature. '
-            'Please subscribe to a plan first.',
+        'Your account is currently under approval. '
+            'We\'ll notify you once it\'s verified.',
         style: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 14,
@@ -86,13 +78,6 @@ void _showNotSubscribedDialog(BuildContext context) {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => context.go("/Dashboard"),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.textSecondary,
-          ),
-          child: const Text('Cancel'),
-        ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.textPrimary,
@@ -103,12 +88,9 @@ void _showNotSubscribedDialog(BuildContext context) {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          onPressed: () {
-
-            context.go('/subscription');
-          },
+          onPressed: () => Navigator.pop(context),
           child: const Text(
-            'Subscribe Now',
+            'OK',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
@@ -117,7 +99,7 @@ void _showNotSubscribedDialog(BuildContext context) {
   );
 }
 
-void _showExpiredDialog(BuildContext context) {
+void _showRefusedDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
@@ -131,12 +113,15 @@ void _showExpiredDialog(BuildContext context) {
               color: AppColors.error.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.timer_off_outlined,
-                color: AppColors.error, size: 20),
+            child: const Icon(
+              Icons.block_rounded,
+              color: AppColors.error,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           const Text(
-            'Subscription Expired',
+            'Account Refused',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
@@ -146,8 +131,8 @@ void _showExpiredDialog(BuildContext context) {
         ],
       ),
       content: const Text(
-        'Your subscription has expired. '
-            'Please renew your plan to continue accessing this feature.',
+        'Your account registration has been refused. '
+            'Please contact support for more information.',
         style: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 14,
@@ -160,11 +145,11 @@ void _showExpiredDialog(BuildContext context) {
           style: TextButton.styleFrom(
             foregroundColor: AppColors.textSecondary,
           ),
-          child: const Text('Cancel'),
+          child: const Text('Close'),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.textPrimary,
+            backgroundColor: AppColors.error,
             foregroundColor: AppColors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -173,11 +158,11 @@ void _showExpiredDialog(BuildContext context) {
             ),
           ),
           onPressed: () {
-            Navigator.pop(context);
-            context.go('/subscription');
+            context.go("/institutionSignUp");
+
           },
           child: const Text(
-            'Renew Now',
+            'Register Again',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
