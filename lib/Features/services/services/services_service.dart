@@ -1,7 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Models/service_model.dart';
 
-
 class ServicesService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -41,6 +40,20 @@ class ServicesService {
         .from('services')
         .update(service.toUpdateJson())
         .eq('id', service.id!);
+  }
+
+  // Delete a service that belongs to the current institution.
+  Future<void> deleteService(String serviceId) async {
+    final institutionId = currentInstitutionId;
+    if (institutionId == null) {
+      throw Exception('No logged-in institution found');
+    }
+
+    await _supabase
+        .from('services')
+        .delete()
+        .eq('id', serviceId)
+        .eq('institution_id', institutionId);
   }
 
   // Change active/inactive status

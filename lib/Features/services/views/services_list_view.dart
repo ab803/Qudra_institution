@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import '../viewmodel/services_cubit.dart';
 import '../viewmodel/services_state.dart';
 import '../widgets/service_card.dart';
@@ -17,10 +16,63 @@ class _ServicesListViewState extends State<ServicesListView> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ServicesCubit>().loadMyServices();
     });
+  }
+
+  // This dialog asks the institution to confirm deleting the selected service.
+  Future<void> _confirmDeleteService({
+    required String serviceId,
+    required String serviceName,
+  }) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Delete Service',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete "$serviceName"? This action cannot be undone.',
+            style: const TextStyle(
+              color: Colors.black87,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true && mounted) {
+      context.read<ServicesCubit>().deleteService(serviceId);
+    }
   }
 
   @override
@@ -73,10 +125,16 @@ class _ServicesListViewState extends State<ServicesListView> {
                     },
                     onToggleStatus: () {
                       if (service.id == null) return;
-
                       context.read<ServicesCubit>().changeServiceStatus(
                         serviceId: service.id!,
                         isActive: !service.isActive,
+                      );
+                    },
+                    onDelete: () {
+                      if (service.id == null) return;
+                      _confirmDeleteService(
+                        serviceId: service.id!,
+                        serviceName: service.name,
                       );
                     },
                   );
