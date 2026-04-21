@@ -1,5 +1,5 @@
 class InstitutionStatus {
   static const pending = 'pending';
-  static const Active = 'Active';
+  static const active = 'active';
   static const rejected = 'rejected';
 }
