@@ -78,7 +78,7 @@ class PortalDrawer extends StatelessWidget {
                 context,
                 icon: Icons.dashboard,
                 label: 'Dashboard',
-                route: '/dashboard',
+                route: '/Dashboard',
               ),
               _buildNavTile(
                 context,
