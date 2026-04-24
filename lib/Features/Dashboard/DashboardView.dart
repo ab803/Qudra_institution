@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qudra_institution/Features/Dashboard/repo/DashboardRepository.dart';
 import 'package:qudra_institution/Features/Dashboard/viewModel/dashboard_cubit.dart';
