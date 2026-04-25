@@ -13,10 +13,12 @@ import '../../Features/Services/services/Models/service_model.dart';
 import '../../Features/Setting/SettingView.dart';
 import '../../Features/services/views/ServiceView.dart';
 import '../../Features/subscribers/SubscribersView.dart';
+import '../../Features/subscribers/widgets/Viewprofile.dart';
 import '../../Features/subscribtion/subscribtionView.dart';
 import '../../Features/subscribtion/viewModel/bundle_cubit.dart';
 import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dart';
 import '../Models/BundleModel.dart';
+import '../Models/subscriberModel.dart';
 import 'gettit.dart';
 import '../../Features/Bookings/viewmodel/institution_bookings_cubit.dart';
 import '../../Features/Bookings/views/institution_bookings_view.dart';
@@ -167,6 +169,16 @@ class AppRouter {
           context,
           state,
           const SubscribersView(),
+        ),
+      ),
+
+      // router
+      GoRoute(
+        path: '/viewProfile',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          ViewProfileView(subscriber: state.extra as SubscriberModel),
         ),
       ),
 
