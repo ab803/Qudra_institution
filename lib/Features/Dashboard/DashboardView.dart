@@ -46,7 +46,7 @@ class _DashboardContentState extends State<_DashboardContent> {
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      drawer: const PortalDrawer(currentRoute: 'dashboard'),
+      drawer: const PortalDrawer(currentRoute: '/Dashboard'),
       body: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           if (state is DashboardLoading || state is DashboardInitial) {
@@ -155,6 +155,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                     onPressed: () async {
                       final allowed = await checkSubscription(context);
                       if (allowed && context.mounted) context.go('/bookings');
+
                     },
                   ),
                   const SizedBox(height: 40),

@@ -22,9 +22,9 @@ class _ServicesViewState extends State<ServicesView> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        leading: IconButton(                                       // ← tappable menu
-          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+        leading: IconButton(
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
         ),
         title: const Text('Services', style: AppTextStyles.appBarTitle),
         actions: [
