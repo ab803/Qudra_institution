@@ -10,7 +10,6 @@ import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
 import '../../Features/Services/services/Models/service_model.dart';
-import '../../Features/Setting/SettingView.dart';
 import '../../Features/services/views/ServiceView.dart';
 import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribers/widgets/Viewprofile.dart';
@@ -182,17 +181,7 @@ class AppRouter {
         ),
       ),
 
-// ─────────────────────────────────────────
-// SETTINGS
-// ─────────────────────────────────────────
-      GoRoute(
-        path: '/settings',
-        pageBuilder: (context, state) => _buildPageWithAnimation(
-          context,
-          state,
-          const SettingsView(),
-        ),
-      ),
+
 
       // In your GoRouter or wherever you push this screen
       GoRoute(
