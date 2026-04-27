@@ -9,6 +9,7 @@ import '../../Features/Auth/forget a password/ResetPassword.dart';
 import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
+import '../../Features/Profile/views/institution_profile_view.dart';
 import '../../Features/Services/services/Models/service_model.dart';
 import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribers/widgets/Viewprofile.dart';
@@ -18,24 +19,15 @@ import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dar
 import '../Models/BundleModel.dart';
 import '../Models/subscriberModel.dart';
 import 'gettit.dart';
-
-
-
 import '../../Features/Services/viewmodel/services_cubit.dart';
 import '../../Features/Services/views/add_edit_service_view.dart';
 import '../../Features/Services/views/services_list_view.dart';
-
-
 
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/institutionLogin',
     routes: [
-
-
-
-
-// Services list route
+      // Services list route
       GoRoute(
         path: '/services',
         builder: (context, state) {
@@ -45,7 +37,6 @@ class AppRouter {
           );
         },
       ),
-
 
       // Add service route
       GoRoute(
@@ -72,62 +63,54 @@ class AppRouter {
         },
       ),
 
-
-
       // ─────────────────────────────────────────
       // LOGIN
       // ─────────────────────────────────────────
       GoRoute(
-          path: '/institutionLogin',
-          builder: (context, state) {
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: const InstitutionLoginView(),
-            );
-          }),
+        path: '/institutionLogin',
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const InstitutionLoginView(),
+          );
+        },
+      ),
 
       // ─────────────────────────────────────────
       // SIGN UP
       // ─────────────────────────────────────────
       GoRoute(
-          path: '/institutionSignUp',
-          builder: (context, state) {
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: const InstitutionSignUpView(),
-            );
-          }
+        path: '/institutionSignUp',
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const InstitutionSignUpView(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/ForgetPassword',
+        builder: (context, state) {
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: const ForgotPasswordScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/ResetPassword',
+        builder: (context, state) {
+          final email = state.extra as String;
+          return BlocProvider.value(
+            value: sl<InstitutionAuthCubit>(),
+            child: ResetPasswordScreen(email: email),
+          );
+        },
       ),
 
-      GoRoute(
-          path: '/ForgetPassword',
-          builder: (context, state) {
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: const ForgotPasswordScreen(),
-            );
-          }),
-      GoRoute(
-          path: '/ResetPassword',
-          builder: (context, state) {
-            final email = state.extra as String;
-
-            return BlocProvider.value(
-              value: sl<InstitutionAuthCubit>(), // pulled from GetIt
-              child: ResetPasswordScreen(email: email,),
-            );
-          }),
-
-
       // ─────────────────────────────────────────
-      // HOME  (uncomment when view is ready)
+      // DASHBOARD
       // ─────────────────────────────────────────
-      // ─────────────────────────────────────────
-// DASHBOARD
-// ─────────────────────────────────────────
       GoRoute(
         path: '/Dashboard',
         pageBuilder: (context, state) => _buildPageWithAnimation(
@@ -137,14 +120,22 @@ class AppRouter {
         ),
       ),
 
-// ─────────────────────────────────────────
-// SERVICES
-// ─────────────────────────────────────────
+      // ─────────────────────────────────────────
+      // PROFILE
+      // ─────────────────────────────────────────
+      // This route opens the institution profile screen from the drawer.
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => _buildPageWithAnimation(
+          context,
+          state,
+          const InstitutionProfileView(),
+        ),
+      ),
 
-
-// ─────────────────────────────────────────
-// SUBSCRIBERS
-// ─────────────────────────────────────────
+      // ─────────────────────────────────────────
+      // SUBSCRIBERS
+      // ─────────────────────────────────────────
       GoRoute(
         path: '/subscribers',
         pageBuilder: (context, state) => _buildPageWithAnimation(
@@ -164,8 +155,6 @@ class AppRouter {
         ),
       ),
 
-
-
       // In your GoRouter or wherever you push this screen
       GoRoute(
         path: '/subscription',
@@ -175,27 +164,22 @@ class AppRouter {
             BlocProvider(create: (_) => sl<SubscriptionInstitutionCubit>()),
           ],
           child: const SubscriptionView(),
-        )
+        ),
       ),
-
       GoRoute(
-        path: "/payment",
+        path: '/payment',
         builder: (context, state) {
           final bundle = state.extra as BundleModel;
           return BlocProvider(
-            create: (_) => SubscriptionInstitutionCubit(sl<SubscribtionInstitutionRepository                      >()),
+            create: (_) => SubscriptionInstitutionCubit(
+              sl<SubscribtionInstitutionRepository>(),
+            ),
             child: PaymentView(bundle: bundle),
           );
         },
       ),
-
     ],
-
-
-
   );
-
-
 
   // ─────────────────────────────────────────
   // ANIMATION BUILDER
@@ -213,7 +197,6 @@ class AppRouter {
           begin: const Offset(1, 0),
           end: Offset.zero,
         ).chain(CurveTween(curve: Curves.easeInOut));
-
         return SlideTransition(
           position: animation.drive(tween),
           child: FadeTransition(opacity: animation, child: child),

@@ -65,7 +65,7 @@ class SubscriberService {
     final response = await _client
         .from('institutions')
         .select('id')
-        .eq('email', user.email ?? '')
+        .eq('id', user.id)
         .maybeSingle();
 
     return response?['id'] as String?;

@@ -9,7 +9,6 @@ import '../../../core/paymentService/PaymobManager.dart';
 import '../../subscribtion/viewModel/subscribtion_institution_cubit.dart';
 import '../../subscribtion/viewModel/subscribtion_institution_state.dart';
 
-
 class PaymentView extends StatefulWidget {
   final BundleModel bundle;
 
@@ -27,9 +26,9 @@ class _PaymentViewState extends State<PaymentView> {
 
   // Card controllers
   final _cardNumberController = TextEditingController();
-  final _cardNameController   = TextEditingController();
-  final _expiryController     = TextEditingController();
-  final _cvvController        = TextEditingController();
+  final _cardNameController = TextEditingController();
+  final _expiryController = TextEditingController();
+  final _cvvController = TextEditingController();
 
   // Wallet controller
   final _walletPhoneController = TextEditingController();
@@ -70,10 +69,14 @@ class _PaymentViewState extends State<PaymentView> {
           onPayment: (response) {
             if (!mounted) return;
             setState(() => _isLoading = false);
+
             if (response.success) {
               _createSubscription();
             } else {
-              _showMessage('Wallet payment failed. Please try again.', isError: true);
+              _showMessage(
+                'Wallet payment failed. Please try again.',
+                isError: true,
+              );
             }
           },
         );
@@ -149,13 +152,12 @@ class _PaymentViewState extends State<PaymentView> {
   }
 
   void _createSubscription() {
-    final institutionId =
-        Supabase.instance.client.auth.currentUser?.id ?? '';
+    final institutionId = Supabase.instance.client.auth.currentUser?.id ?? '';
 
     final paymentMethod = switch (_selectedPayment) {
-      PaymentType.card   => 'card',
+      PaymentType.card => 'card',
       PaymentType.wallet => 'wallet',
-      PaymentType.cash   => 'cash',
+      PaymentType.cash => 'cash',
     };
 
     final model = SubscribtionInstitutionmodel(
@@ -169,9 +171,7 @@ class _PaymentViewState extends State<PaymentView> {
       createdAt: DateTime.now(),
     );
 
-    context
-        .read<SubscriptionInstitutionCubit>()
-        .createSubscription(model);
+    context.read<SubscriptionInstitutionCubit>().createSubscription(model);
   }
 
   void _showMessage(String message, {required bool isError}) {
@@ -187,7 +187,6 @@ class _PaymentViewState extends State<PaymentView> {
   // ─────────────────────────────────────────────────────────────
   // BUILD
   // ─────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<SubscriptionInstitutionCubit,
@@ -209,17 +208,21 @@ class _PaymentViewState extends State<PaymentView> {
             const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               children: [
-                const Text('Order Summary',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Order Summary',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 _buildOrderSummaryCard(),
                 const SizedBox(height: 32),
-                const Text('Payment Method',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Payment Method',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 _buildCreditCardOption(),
                 const SizedBox(height: 16),
-                _buildWalletOption(),           // 👈 wallet with phone field
+                _buildWalletOption(), // 👈 wallet with phone field
                 const SizedBox(height: 16),
                 _buildSimplePaymentOption(
                   title: 'Cash Payment',
@@ -241,7 +244,6 @@ class _PaymentViewState extends State<PaymentView> {
   // ─────────────────────────────────────────────────────────────
   // WIDGETS
   // ─────────────────────────────────────────────────────────────
-
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -251,54 +253,92 @@ class _PaymentViewState extends State<PaymentView> {
         icon: const Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: const Text('Payment',
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)),
+      title: const Text(
+        'Payment',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
     );
   }
 
   Widget _buildOrderSummaryCard() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Expanded(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      // This layout keeps the order summary content responsive and prevents right overflow on large prices.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.bundle.name,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  widget.bundle.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   widget.bundle.description ?? 'Monthly Subscription',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
                 ),
               ],
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text('\$${widget.bundle.price.toStringAsFixed(2)}',
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '\$${widget.bundle.price.toStringAsFixed(2)}',
                     style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 4),
-                Text('/ mo',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-              ],
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '/ mo',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCreditCardOption() {
     final isSelected = _selectedPayment == PaymentType.card;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedPayment = PaymentType.card),
       child: AnimatedContainer(
@@ -315,9 +355,13 @@ class _PaymentViewState extends State<PaymentView> {
                 _buildCustomRadio(isSelected),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text('Credit/Debit Card',
-                      style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    'Credit/Debit Card',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 const Icon(Icons.credit_card, color: Colors.black54),
               ],
@@ -370,6 +414,7 @@ class _PaymentViewState extends State<PaymentView> {
   /// Wallet option — expands to show a phone number field when selected
   Widget _buildWalletOption() {
     final isSelected = _selectedPayment == PaymentType.wallet;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedPayment = PaymentType.wallet),
       child: AnimatedContainer(
@@ -386,16 +431,23 @@ class _PaymentViewState extends State<PaymentView> {
                 _buildCustomRadio(isSelected),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text('Mobile Wallet',
-                      style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    'Mobile Wallet',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                const Icon(Icons.account_balance_wallet_outlined,
-                    color: Colors.black54),
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: Colors.black54,
+                ),
                 const SizedBox(width: 8),
                 const Icon(Icons.contactless_outlined, color: Colors.black54),
               ],
             ),
+
             // ── Phone field shown only when selected ──
             if (isSelected) ...[
               const SizedBox(height: 24),
@@ -419,20 +471,28 @@ class _PaymentViewState extends State<PaymentView> {
     required List<Widget> icons,
   }) {
     final isSelected = _selectedPayment == value;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedPayment = value),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
             _buildCustomRadio(isSelected),
             const SizedBox(width: 12),
             Expanded(
-                child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w500))),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
             ...icons,
           ],
         ),
@@ -447,7 +507,9 @@ class _PaymentViewState extends State<PaymentView> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-            color: isSelected ? Colors.black : Colors.grey, width: 2),
+          color: isSelected ? Colors.black : Colors.grey,
+          width: 2,
+        ),
       ),
       child: isSelected
           ? Center(
@@ -455,7 +517,9 @@ class _PaymentViewState extends State<PaymentView> {
           height: 10,
           width: 10,
           decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.black),
+            shape: BoxShape.circle,
+            color: Colors.black,
+          ),
         ),
       )
           : null,
@@ -473,12 +537,15 @@ class _PaymentViewState extends State<PaymentView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-                letterSpacing: 0.5)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+            letterSpacing: 0.5,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           color: const Color(0xFFEBEBEB),
@@ -490,15 +557,22 @@ class _PaymentViewState extends State<PaymentView> {
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey[600]),
               border: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black)),
+                borderSide: BorderSide(color: Colors.black),
+              ),
               enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black)),
+                borderSide: BorderSide(color: Colors.black),
+              ),
               focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 2)),
+                borderSide: BorderSide(color: Colors.black, width: 2),
+              ),
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               suffixIcon: trailingIcon != null
-                  ? Icon(trailingIcon, size: 16, color: Colors.grey[700])
+                  ? Icon(
+                trailingIcon,
+                size: 16,
+                color: Colors.grey[700],
+              )
                   : null,
             ),
           ),
@@ -515,24 +589,31 @@ class _PaymentViewState extends State<PaymentView> {
         onPressed: _isLoading ? null : _handleConfirmPayment,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF222222),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 0,
         ),
         child: _isLoading
             ? const SizedBox(
-            height: 22,
-            width: 22,
-            child: CircularProgressIndicator(
-                color: Colors.white, strokeWidth: 2))
+          height: 22,
+          width: 22,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
             : const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Confirm Payment',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              'Confirm Payment',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(width: 8),
             Icon(Icons.lock, color: Colors.white, size: 18),
           ],
@@ -547,8 +628,10 @@ class _PaymentViewState extends State<PaymentView> {
       children: [
         Icon(Icons.shield, size: 14, color: Colors.grey[600]),
         const SizedBox(width: 6),
-        Text('Payments are secure and encrypted',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(
+          'Payments are secure and encrypted',
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
       ],
     );
   }

@@ -104,7 +104,14 @@ class _ServicesListViewState extends State<ServicesListView> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        onPressed: () => context.push('/services/add'),
+        // This opens the add service screen and refreshes the list only after a successful create.
+        onPressed: () async {
+          final didChange = await context.push<bool>('/services/add');
+
+          if (didChange == true && mounted) {
+            context.read<ServicesCubit>().loadMyServices();
+          }
+        },
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -132,10 +139,19 @@ class _ServicesListViewState extends State<ServicesListView> {
 
                   return ServiceCard(
                     service: service,
-                    onEdit: () {
-                      if (service.id == null) return;
-                      context.push('/services/edit', extra: service);
-                    },
+                  onEdit: () async {
+                 if (service.id == null) return;
+                           // This opens the edit service screen and refreshes the list only after a successful update.
+                         final didChange = await context.push<bool>(
+                             '/services/edit',
+                               extra: service,
+                                 );
+
+                               if (didChange == true && mounted) {
+                                 context.read<ServicesCubit>().loadMyServices();
+                           }
+                           },
+
                     onToggleStatus: () {
                       if (service.id == null) return;
                       context.read<ServicesCubit>().changeServiceStatus(

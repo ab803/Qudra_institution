@@ -17,7 +17,6 @@ class PortalDrawer extends StatefulWidget {
 
 class _PortalDrawerState extends State<PortalDrawer> {
   final InstitutionService _service = InstitutionService();
-
   InstitutionModel? _profile;
   bool _loadingProfile = true;
   bool _loggingOut = false;
@@ -31,7 +30,10 @@ class _PortalDrawerState extends State<PortalDrawer> {
   Future<void> _loadProfile() async {
     try {
       final profile = await _service.getCurrentProfile();
-      if (mounted) setState(() { _profile = profile; _loadingProfile = false; });
+      if (mounted) setState(() {
+        _profile = profile;
+        _loadingProfile = false;
+      });
     } catch (_) {
       if (mounted) setState(() => _loadingProfile = false);
     }
@@ -111,7 +113,6 @@ class _PortalDrawerState extends State<PortalDrawer> {
                 route: '/services',
                 requiresSubscription: true,
               ),
-
               _buildNavTile(
                 context,
                 icon: Icons.people,
@@ -120,11 +121,10 @@ class _PortalDrawerState extends State<PortalDrawer> {
               ),
               _buildNavTile(
                 context,
-                icon: Icons.settings,
-                label: 'Settings',
-                route: '/settings',
+                icon: Icons.person_outline,
+                label: 'Profile',
+                route: '/profile',
               ),
-
               const Spacer(),
 
               // ───────── Logout ─────────
@@ -215,7 +215,9 @@ class _PortalDrawerState extends State<PortalDrawer> {
                     Container(
                       margin: const EdgeInsets.only(top: 4),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFC5CEFF),
                         borderRadius: BorderRadius.circular(6),
@@ -351,9 +353,7 @@ class _PortalDrawerState extends State<PortalDrawer> {
           if (requiresSubscription) {
             final allowed = await checkSubscription(context);
             if (!mounted) return;
-
             Navigator.pop(context);
-
             if (allowed) {
               router.go(route);
             }

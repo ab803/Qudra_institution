@@ -114,13 +114,14 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
     return BlocListener<ServicesCubit, ServicesState>(
       listener: (context, state) {
         if (state is ServicesLoaded) {
-          // This handles successful save navigation by returning to the previous screen or falling back to the services list.
+          // This returns true to the previous screen so it can refresh the services list after a successful save.
           if (context.canPop()) {
-            context.pop();
+            context.pop(true);
           } else {
             context.go('/services');
           }
         }
+
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F8FA),
@@ -133,7 +134,7 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
               if (context.canPop()) {
-                context.pop();
+                context.pop(true);
               } else {
                 context.go('/services');
               }
