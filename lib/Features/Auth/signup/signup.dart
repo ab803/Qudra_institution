@@ -8,7 +8,6 @@ import '../ViewModel/auth_state.dart';
 import '../widgets/AppTextField.dart';
 import '../widgets/AuthButton.dart';
 
-
 class InstitutionSignUpView extends StatefulWidget {
   const InstitutionSignUpView({super.key});
 
@@ -80,12 +79,18 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
       listener: (context, state) {
         if (state is InstitutionSignUpSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
+            // This success message tells the institution user to verify the email before logging in.
             const SnackBar(
-              content: Text('✅ Institution registered successfully!'),
+              content: Text(
+                '✅ Registration successful. Please check your email, verify your account, then log in.',
+              ),
               backgroundColor: AppColors.success,
+              duration: Duration(seconds: 4),
             ),
           );
-          context.go('/Dashboard');
+
+          // This redirects the user to the login screen instead of opening the dashboard without a confirmed session.
+          context.go('/institutionLogin');
         } else if (state is InstitutionAuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -98,31 +103,30 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              const Text('Institution Details',
-                  style: AppTextStyles.screenTitle),
+              const Text(
+                'Institution Details',
+                style: AppTextStyles.screenTitle,
+              ),
               const SizedBox(height: 6),
               Text(
                 'Register your institution to access Qudra services',
                 style: AppTextStyles.description,
               ),
               const SizedBox(height: 28),
-
               CustomTextField(
                 controller: _nameController,
                 label: 'Institution Name *',
                 hint: 'e.g. Cairo Rehabilitation Center',
-                prefixIcon: const Icon(Icons.business,
-                    color: AppColors.iconGrey),
+                prefixIcon:
+                const Icon(Icons.business, color: AppColors.iconGrey),
                 keyboardType: TextInputType.text,
               ),
-
               CustomTextField(
                 controller: _emailController,
                 label: 'Official Email *',
@@ -131,7 +135,6 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 const Icon(Icons.mail_outline, color: AppColors.iconGrey),
                 keyboardType: TextInputType.emailAddress,
               ),
-
               CustomTextField(
                 controller: _passwordController,
                 label: 'Password',
@@ -141,22 +144,22 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 const Icon(Icons.lock_outline, color: AppColors.iconGrey),
                 keyboardType: TextInputType.visiblePassword,
               ),
-
               CustomTextField(
                 controller: _phoneController,
                 label: 'Phone Number *',
                 hint: '01234567890',
                 prefixIcon:
                 const Icon(Icons.phone, color: AppColors.iconGrey),
-                keyboardType:TextInputType.phone ,
+                keyboardType: TextInputType.phone,
               ),
-
               CustomTextField(
                 controller: _addressController,
                 label: 'Address *',
                 hint: 'Full address',
-                prefixIcon: const Icon(Icons.location_on_outlined,
-                    color: AppColors.iconGrey),
+                prefixIcon: const Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.iconGrey,
+                ),
                 keyboardType: TextInputType.streetAddress,
               ),
 
@@ -166,8 +169,10 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Institution Type *',
-                        style: AppTextStyles.fieldLabel),
+                    const Text(
+                      'Institution Type *',
+                      style: AppTextStyles.fieldLabel,
+                    ),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -181,11 +186,17 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                         child: DropdownButton<String>(
                           value: _selectedType,
                           isExpanded: true,
-                          hint: Text('Select type',
-                              style: AppTextStyles.hint),
+                          hint: Text(
+                            'Select type',
+                            style: AppTextStyles.hint,
+                          ),
                           items: _institutionTypes
-                              .map((e) => DropdownMenuItem(
-                              value: e, child: Text(e)))
+                              .map(
+                                (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e),
+                            ),
+                          )
                               .toList(),
                           onChanged: (val) =>
                               setState(() => _selectedType = val),
@@ -195,27 +206,24 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                   ],
                 ),
               ),
-
               CustomTextField(
                 controller: _locationController,
                 label: 'Location Link',
                 hint: 'Google Maps link',
-                prefixIcon: const Icon(Icons.location_on_outlined,
-                    color: AppColors.iconGrey),
+                prefixIcon: const Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.iconGrey,
+                ),
                 keyboardType: TextInputType.url,
               ),
-
               const SizedBox(height: 10),
-
               AuthButton(
                 label: 'Register Institution',
                 onPressed: _onSignUp,
                 trailingIcon:
                 const Icon(Icons.arrow_forward, color: Colors.white),
               ),
-
               const SizedBox(height: 24),
-
               Center(
                 child: GestureDetector(
                   onTap: () => context.go('/institutionLogin'),

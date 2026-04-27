@@ -1,5 +1,5 @@
-// This model represents a single booking item shown inside the institution portal.
-class InstitutionBookingItemModel {
+// This model represents a single booking item shown inside a subscriber profile.
+class SubscriberBookingItemModel {
   final String id;
   final String serviceId;
   final String serviceName;
@@ -11,7 +11,7 @@ class InstitutionBookingItemModel {
   final String paymentMethod;
   final DateTime? createdAt;
 
-  InstitutionBookingItemModel({
+  const SubscriberBookingItemModel({
     required this.id,
     required this.serviceId,
     required this.serviceName,

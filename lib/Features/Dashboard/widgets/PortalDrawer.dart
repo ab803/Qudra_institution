@@ -17,6 +17,7 @@ class PortalDrawer extends StatefulWidget {
 
 class _PortalDrawerState extends State<PortalDrawer> {
   final InstitutionService _service = InstitutionService();
+
   InstitutionModel? _profile;
   bool _loadingProfile = true;
   bool _loggingOut = false;
@@ -40,7 +41,7 @@ class _PortalDrawerState extends State<PortalDrawer> {
     setState(() => _loggingOut = true);
     try {
       await _service.logout();
-      if (mounted) context.go('/login');
+      if (mounted) context.go('/institutionLogin');
     } catch (e) {
       if (mounted) {
         setState(() => _loggingOut = false);
@@ -88,14 +89,12 @@ class _PortalDrawerState extends State<PortalDrawer> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 32),
 
               // ───────── Profile Card ─────────
               _loadingProfile
                   ? const Center(child: CircularProgressIndicator())
                   : _buildProfileCard(),
-
               const SizedBox(height: 32),
 
               // ───────── Navigation ─────────
@@ -112,12 +111,7 @@ class _PortalDrawerState extends State<PortalDrawer> {
                 route: '/services',
                 requiresSubscription: true,
               ),
-              _buildNavTile(
-                context,
-                icon: Icons.book_online,
-                label: 'Bookings',
-                route: '/bookings',
-              ),
+
               _buildNavTile(
                 context,
                 icon: Icons.people,
@@ -135,7 +129,6 @@ class _PortalDrawerState extends State<PortalDrawer> {
 
               // ───────── Logout ─────────
               _buildLogoutButton(),
-
               const SizedBox(height: 16),
 
               // ───────── Footer ─────────
@@ -243,9 +236,11 @@ class _PortalDrawerState extends State<PortalDrawer> {
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           const SizedBox(height: 12),
+
           // Email
           _buildProfileDetail(Icons.email_outlined, email),
           const SizedBox(height: 8),
+
           // Phone
           _buildProfileDetail(Icons.phone_outlined, phone),
         ],
@@ -345,14 +340,26 @@ class _PortalDrawerState extends State<PortalDrawer> {
             isSelected ? AppColors.white : AppColors.textSecondary)
             : null,
         onTap: () async {
-          Navigator.pop(context);
-          if (!isSelected) {
-            if (requiresSubscription) {
-              final allowed = await checkSubscription(context);
-              if (allowed && context.mounted) context.go(route);
-            } else {
-              context.go(route);
+          // This preserves the existing navigation logic while avoiding navigation with a closed drawer context.
+          final router = GoRouter.of(context);
+
+          if (isSelected) {
+            Navigator.pop(context);
+            return;
+          }
+
+          if (requiresSubscription) {
+            final allowed = await checkSubscription(context);
+            if (!mounted) return;
+
+            Navigator.pop(context);
+
+            if (allowed) {
+              router.go(route);
             }
+          } else {
+            Navigator.pop(context);
+            router.go(route);
           }
         },
       ),

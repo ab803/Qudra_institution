@@ -10,7 +10,6 @@ import '../../Features/Auth/login/login.dart';
 import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
 import '../../Features/Services/services/Models/service_model.dart';
-import '../../Features/services/views/ServiceView.dart';
 import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribers/widgets/Viewprofile.dart';
 import '../../Features/subscribtion/subscribtionView.dart';
@@ -19,8 +18,7 @@ import '../../Features/subscribtion/viewModel/subscribtion_institution_cubit.dar
 import '../Models/BundleModel.dart';
 import '../Models/subscriberModel.dart';
 import 'gettit.dart';
-import '../../Features/Bookings/viewmodel/institution_bookings_cubit.dart';
-import '../../Features/Bookings/views/institution_bookings_view.dart';
+
 
 
 import '../../Features/Services/viewmodel/services_cubit.dart';
@@ -60,13 +58,15 @@ class AppRouter {
         },
       ),
 
-// Edit service route
+      // Edit service route
       GoRoute(
         path: '/services/edit',
         builder: (context, state) {
           final service = state.extra as ServiceModel;
-          return BlocProvider(
-            create: (_) => sl<ServicesCubit>(),
+
+          // This keeps using the shared ServicesCubit instance without allowing the route provider to close it.
+          return BlocProvider.value(
+            value: sl<ServicesCubit>(),
             child: AddEditServiceView(existingService: service),
           );
         },
@@ -121,16 +121,6 @@ class AppRouter {
             );
           }),
 
-// Institution bookings route
-      GoRoute(
-        path: '/bookings',
-        builder: (context, state) {
-          return BlocProvider(
-            create: (_) => sl<InstitutionBookingsCubit>(),
-            child: const InstitutionBookingsView(),
-          );
-        },
-      ),
 
       // ─────────────────────────────────────────
       // HOME  (uncomment when view is ready)
@@ -150,14 +140,7 @@ class AppRouter {
 // ─────────────────────────────────────────
 // SERVICES
 // ─────────────────────────────────────────
-      GoRoute(
-        path: '/services',
-        pageBuilder: (context, state) => _buildPageWithAnimation(
-          context,
-          state,
-          const  ServicesView(),
-        ),
-      ),
+
 
 // ─────────────────────────────────────────
 // SUBSCRIBERS

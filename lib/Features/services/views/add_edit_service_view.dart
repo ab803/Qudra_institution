@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../services/Models/service_model.dart';
 import '../viewmodel/services_cubit.dart';
 import '../viewmodel/services_state.dart';
@@ -20,7 +20,6 @@ class AddEditServiceView extends StatefulWidget {
 
 class _AddEditServiceViewState extends State<AddEditServiceView> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -30,7 +29,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
 
   bool _isFree = false;
   bool _isActive = true;
-
   String _locationMode = 'on_site';
   String _bookingType = 'request';
 
@@ -49,7 +47,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
   @override
   void initState() {
     super.initState();
-
     if (widget.existingService != null) {
       final service = widget.existingService!;
       _nameController.text = service.name;
@@ -117,7 +114,12 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
     return BlocListener<ServicesCubit, ServicesState>(
       listener: (context, state) {
         if (state is ServicesLoaded) {
-          Navigator.of(context).pop();
+          // This handles successful save navigation by returning to the previous screen or falling back to the services list.
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/services');
+          }
         }
       },
       child: Scaffold(
@@ -125,6 +127,19 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
+
+          // This back button always returns to the previous page, or falls back to the services list if there is no back stack.
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/services');
+              }
+            },
+          ),
+
           title: Text(
             isEditMode ? 'Edit Service' : 'Add Service',
             style: const TextStyle(color: Colors.black),
@@ -155,7 +170,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       ],
                     ),
                   ),
-
                   _section(
                     title: 'Pricing',
                     child: Column(
@@ -180,7 +194,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       ],
                     ),
                   ),
-
                   _section(
                     title: 'Service Details',
                     child: Column(
@@ -207,7 +220,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       ],
                     ),
                   ),
-
                   _section(
                     title: 'Supported Disabilities',
                     child: Wrap(
@@ -244,7 +256,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       }).toList(),
                     ),
                   ),
-
                   _section(
                     title: 'Availability Notes',
                     child: _input(
@@ -253,7 +264,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       maxLines: 3,
                     ),
                   ),
-
                   _section(
                     title: 'Status',
                     child: SwitchListTile(
@@ -268,9 +278,7 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       MaterialStateProperty.all(Colors.black26),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -299,7 +307,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
   }
 
   // ---------- UI Helpers ----------
-
   Widget _section({required String title, required Widget child}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -390,12 +397,10 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
         )
             .toList(),
         onChanged: onChanged,
-
         // ✅ dropdown list background
         dropdownColor: Colors.white,
         iconEnabledColor: Colors.black,
         style: const TextStyle(color: Colors.black),
-
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.black),

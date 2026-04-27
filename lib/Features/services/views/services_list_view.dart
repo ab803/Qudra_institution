@@ -82,6 +82,19 @@ class _ServicesListViewState extends State<ServicesListView> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+
+        // This back button always returns to the previous page, or falls back to Dashboard if there is no back stack.
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/Dashboard');
+            }
+          },
+        ),
+
         title: const Text(
           'My Services',
           style: TextStyle(color: Colors.black),

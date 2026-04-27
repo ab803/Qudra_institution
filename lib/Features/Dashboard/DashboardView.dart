@@ -52,18 +52,20 @@ class _DashboardContentState extends State<_DashboardContent> {
           if (state is DashboardLoading || state is DashboardInitial) {
             return const Center(child: CircularProgressIndicator());
           }
+
           if (state is DashboardError) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Failed to load stats',
-                      style: AppTextStyles.description),
+                  Text(
+                    'Failed to load stats',
+                    style: AppTextStyles.description,
+                  ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () {
-                      final id =
-                          Supabase.instance.client.auth.currentUser!.id;
+                      final id = Supabase.instance.client.auth.currentUser!.id;
                       context.read<DashboardCubit>().loadStats(id);
                     },
                     child: const Text('Retry'),
@@ -125,6 +127,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                     onPressed: () => context.go('/subscription'),
                   ),
                   const SizedBox(height: 12),
+
                   QuickActionButton(
                     title: 'Manage Services',
                     icon: Icons.layers,
@@ -136,6 +139,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                     },
                   ),
                   const SizedBox(height: 12),
+
                   QuickActionButton(
                     title: 'Add Service',
                     icon: Icons.add,
@@ -147,17 +151,16 @@ class _DashboardContentState extends State<_DashboardContent> {
                     },
                   ),
                   const SizedBox(height: 12),
+
+                  // This quick action opens the subscribers screen directly from the dashboard.
                   QuickActionButton(
-                    title: 'View Bookings',
-                    icon: Icons.book_online,
+                    title: 'View Subscribers',
+                    icon: Icons.people,
                     bgColor: AppColors.textPrimary,
                     textColor: AppColors.white,
-                    onPressed: () async {
-                      final allowed = await checkSubscription(context);
-                      if (allowed && context.mounted) context.go('/bookings');
-
-                    },
+                    onPressed: () => context.go('/subscribers'),
                   ),
+                  const SizedBox(height: 12),
                   const SizedBox(height: 40),
                 ],
               ),

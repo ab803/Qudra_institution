@@ -9,7 +9,6 @@ import '../../core/Models/subscriberModel.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
 
-
 class SubscribersView extends StatelessWidget {
   const SubscribersView({super.key});
 
@@ -22,8 +21,7 @@ class SubscribersView extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────
 class _SubscribersBody extends StatefulWidget {
   const _SubscribersBody();
 
@@ -35,6 +33,11 @@ class _SubscribersBodyState extends State<_SubscribersBody> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
 
+  Future<bool> _onWillPop() async {
+    context.go('/Dashboard');
+    return false;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -43,66 +46,75 @@ class _SubscribersBodyState extends State<_SubscribersBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppColors.background,
-      drawer: const PortalDrawer(currentRoute: '/subscribers'),
-      appBar: _buildAppBar(),
-      body: BlocBuilder<SubscriberCubit, SubscriberState>(
-        builder: (context, state) {
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  children: [
-                    const SizedBox(height: 16),
-                    const Text('Subscribers', style: AppTextStyles.largeTitle),
-                    const Text(
-                      'MANAGEMENT & INSIGHTS',
-                      style: TextStyle(
-                        letterSpacing: 1.5,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppColors.background,
+        drawer: const PortalDrawer(currentRoute: '/subscribers'),
+        appBar: _buildAppBar(),
+        body: BlocBuilder<SubscriberCubit, SubscriberState>(
+          builder: (context, state) {
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    children: [
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Subscribers',
+                        style: AppTextStyles.largeTitle,
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildSearchBar(context),
-                    const SizedBox(height: 32),
+                      const Text(
+                        'MANAGEMENT & INSIGHTS',
+                        style: TextStyle(
+                          letterSpacing: 1.5,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildSearchBar(context),
+                      const SizedBox(height: 32),
 
-                    // ── Content ──────────────────────────────────────
-                    if (state is SubscriberLoading)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 60),
-                        child: Center(child: CircularProgressIndicator(color: AppColors.primary,)),
-                      )
-                    else if (state is SubscriberError)
-                      _ErrorCard(message: state.message)
-                    else if (state is SubscriberLoaded) ...[
-                        if (state.subscribers.isEmpty)
-                          const _EmptyState()
-                        else
-                          ...state.subscribers.map(
-                                (s) => _SubscriberCard(subscriber: s),
+                      // ── CONTENT ──
+                      if (state is SubscriberLoading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 60),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
                           ),
-                        const SizedBox(height: 24),
-                        _buildPagination(context, state),
-                      ],
-
-                    const SizedBox(height: 40),
-                  ],
+                        )
+                      else if (state is SubscriberError)
+                        _ErrorCard(message: state.message)
+                      else if (state is SubscriberLoaded) ...[
+                          if (state.subscribers.isEmpty)
+                            const _EmptyState()
+                          else ...[
+                            ...state.subscribers
+                                .map((s) => _SubscriberCard(subscriber: s)),
+                            const SizedBox(height: 24),
+                            _buildPagination(context, state),
+                          ],
+                        ],
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  // ─── Search ────────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────
+  // SEARCH
   Widget _buildSearchBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -111,14 +123,15 @@ class _SubscribersBodyState extends State<_SubscribersBody> {
       ),
       child: TextField(
         controller: _searchController,
-        onSubmitted: (v) =>
-            context.read<SubscriberCubit>().search(v.trim()),
+        onSubmitted: (v) => context.read<SubscriberCubit>().search(v.trim()),
         decoration: InputDecoration(
           hintText: 'Search by name, email, or phone...',
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+          prefixIcon:
+          const Icon(Icons.search, color: AppColors.textSecondary),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-            icon: const Icon(Icons.clear, color: AppColors.textSecondary),
+            icon: const Icon(Icons.clear,
+                color: AppColors.textSecondary),
             onPressed: () {
               _searchController.clear();
               context.read<SubscriberCubit>().search('');
@@ -128,24 +141,36 @@ class _SubscribersBodyState extends State<_SubscribersBody> {
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
-        onChanged: (_) => setState(() {}), // rebuild to show/hide clear btn
+        onChanged: (_) => setState(() {}),
       ),
     );
   }
 
-  // ─── Pagination ────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // PAGINATION (✅ FIXED)
+  Widget _buildPagination(
+      BuildContext context,
+      SubscriberLoaded state,
+      ) {
+    // ✅ Guard: no pagination when empty
+    if (state.totalCount <= 0 || state.subscribers.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-  Widget _buildPagination(BuildContext context, SubscriberLoaded state) {
     final cubit = context.read<SubscriberCubit>();
     final start = (state.currentPage - 1) * state.pageSize + 1;
-    final end = (start + state.subscribers.length - 1).clamp(start, state.totalCount);
+    final end =
+    (start + state.subscribers.length - 1).clamp(start, state.totalCount);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Showing $start–$end of ${state.totalCount}\nsubscribers',
-          style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textLight,
+          ),
         ),
         Row(
           children: [
@@ -171,36 +196,35 @@ class _SubscribersBodyState extends State<_SubscribersBody> {
     );
   }
 
-  // ─── AppBar ────────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.background,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.menu, color: AppColors.textPrimary),
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+        onPressed: () => context.go('/Dashboard'),
       ),
-      title: const Text('Qudra', style: AppTextStyles.appBarTitle),
+      title: const Text(
+        'Subscribers',
+        style: AppTextStyles.appBarTitle,
+      ),
       centerTitle: true,
-      actions: const [
-        CircleAvatar(
-          radius: 16,
-          backgroundImage:
-          NetworkImage('https://i.pravatar.cc/150?u=admin'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        SizedBox(width: 24),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-widgets
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────
+// SUB-WIDGETS
 class _SubscriberCard extends StatelessWidget {
   final SubscriberModel subscriber;
+
   const _SubscriberCard({required this.subscriber});
 
   @override
@@ -215,7 +239,6 @@ class _SubscriberCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar + name row
           Row(
             children: [
               CircleAvatar(
@@ -223,7 +246,10 @@ class _SubscriberCard extends StatelessWidget {
                 backgroundColor: Colors.black,
                 child: Text(
                   subscriber.initials,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -246,47 +272,34 @@ class _SubscriberCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-
-          // Joined date
-          const Text(
-            'JOINED',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textLight,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subscriber.subscribedAt != null
-                ? _formatDate(subscriber.subscribedAt!)
-                : '—',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-
-          // Disability type badge
-          if (subscriber.disabilityType != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFC5CEFF),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                subscriber.disabilityType!.toUpperCase(),
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          if (subscriber.subscribedAt != null) ...[
+            const Text(
+              'JOINED',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textLight,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              '${subscriber.subscribedAt!.day}/${subscriber.subscribedAt!.month}/${subscriber.subscribedAt!.year}',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+
           const SizedBox(height: 20),
 
-          // View Profile button
+          // This button opens the selected subscriber profile as a details screen.
           SizedBox(
             width: double.infinity,
             height: 45,
             child: ElevatedButton(
               onPressed: () {
-                context.go("/viewProfile",extra: subscriber);
+                context.push('/viewProfile', extra: subscriber);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE9E9E9),
@@ -308,17 +321,7 @@ class _SubscriberCard extends StatelessWidget {
       ),
     );
   }
-
-  String _formatDate(DateTime d) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
-  }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PageBox extends StatelessWidget {
   final String label;
@@ -366,8 +369,6 @@ class _PageBox extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -391,10 +392,9 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _ErrorCard extends StatelessWidget {
   final String message;
+
   const _ErrorCard({required this.message});
 
   @override

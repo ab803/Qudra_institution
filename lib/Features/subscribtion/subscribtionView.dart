@@ -6,7 +6,6 @@ import 'package:qudra_institution/Features/subscribtion/viewModel/subscribtion_i
 import 'package:qudra_institution/Features/subscribtion/viewModel/subscribtion_institution_state.dart';
 import '../../../core/Models/BundleModel.dart';
 
-
 class SubscriptionView extends StatefulWidget {
   const SubscriptionView({super.key});
 
@@ -34,11 +33,16 @@ class _SubscriptionViewState extends State<SubscriptionView> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: BackButton(color: Colors.black, onPressed: (){
-          context.go("/Dashboard");
-        },),
+        leading: BackButton(
+          color: Colors.black,
+          onPressed: () {
+            context.go('/Dashboard');
+          },
+        ),
+
+        // This title clarifies the current page purpose for the institution user.
         title: const Text(
-          'Subscription',
+          'Manage Subscription',
           style: TextStyle(color: Colors.black, fontSize: 16),
         ),
       ),
@@ -66,8 +70,9 @@ class _SubscriptionViewState extends State<SubscriptionView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // This heading uses simpler wording for the current subscription screen.
               const Text(
-                'Choose Your\nTier.',
+                'Choose Your\nPlan.',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -104,14 +109,16 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                   if (bundleState is BundleLoaded) {
                     return Column(
                       children: bundleState.bundles
-                          .map((bundle) => _BundleCard(
-                        bundle: bundle,
-                        isSelected: _selectedBundleId == bundle.id,
-                        onSelect: () => setState(
-                                () => _selectedBundleId = bundle.id),
-                        onSubscribe: () =>
-                            _onSubscribe(context, bundle),
-                      ))
+                          .map(
+                            (bundle) => _BundleCard(
+                          bundle: bundle,
+                          isSelected: _selectedBundleId == bundle.id,
+                          onSelect: () => setState(
+                                () => _selectedBundleId = bundle.id,
+                          ),
+                          onSubscribe: () => _onSubscribe(context, bundle),
+                        ),
+                      )
                           .toList(),
                     );
                   }
@@ -134,7 +141,6 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     );
   }
 }
-
 
 class _BundleCard extends StatelessWidget {
   final BundleModel bundle;
@@ -161,7 +167,8 @@ class _BundleCard extends StatelessWidget {
           color: isSelected ? const Color(0xFF1A1A2E) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A1A2E) : Colors.grey.shade200,
+            color:
+            isSelected ? const Color(0xFF1A1A2E) : Colors.grey.shade200,
             width: 1.5,
           ),
           boxShadow: isSelected
@@ -208,8 +215,9 @@ class _BundleCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color:
-                      isSelected ? Colors.white : const Color(0xFF1A1A2E),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF1A1A2E),
                     ),
                   ),
                 ),

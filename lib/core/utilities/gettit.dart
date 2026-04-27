@@ -2,7 +2,9 @@ import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../Features/Auth/repo/InstitutionRepository.dart';
 import '../../Features/Auth/repo/InstitutionRepositoryImpl.dart';
-import '../../Features/Auth/ViewModel/auth_cubit.dart';  // ← lowercase 'v'
+import '../../Features/Auth/ViewModel/auth_cubit.dart'; // ← lowercase 'v'
+import '../../Features/Dashboard/repo/DashboardRepository.dart';
+import '../../Features/Dashboard/viewModel/dashboard_cubit.dart';
 import '../../Features/subscribers/repo/SubscriberRepository.dart';
 import '../../Features/subscribers/viewModel/subscribers_cubit.dart';
 import '../../Features/subscribtion/repo/BundleRepo.dart';
@@ -13,20 +15,16 @@ import '../supabase/BundleService.dart';
 import '../supabase/SubscriberService.dart';
 import '../supabase/institutionservice.dart';
 import '../supabase/subscribtionService.dart';
-import '../../Features/Bookings/services/institution_bookings_service.dart';
-import '../../Features/Bookings/viewmodel/institution_bookings_cubit.dart';
-
 import '../../Features/Services/services/services_service.dart';
 import '../../Features/Services/viewmodel/services_cubit.dart';
-
-
 
 final sl = GetIt.instance;
 
 void setupLocator() {
   sl.registerLazySingleton<SupabaseClient>(
-        () => Supabase.instance.client,  // ← ADD THIS FIRST
+        () => Supabase.instance.client, // ← ADD THIS FIRST
   );
+
   // ─────────────── SERVICES ───────────────
   sl.registerLazySingleton<InstitutionService>(
         () => InstitutionService(),
@@ -40,7 +38,8 @@ void setupLocator() {
   );
 
   // ─────────────── CUBIT ──────────────────
-  sl.registerLazySingleton<InstitutionAuthCubit>(   // ✅ singleton, not factory
+  sl.registerLazySingleton<InstitutionAuthCubit>(
+    // ✅ singleton, not factory
         () => InstitutionAuthCubit(sl<IInstitutionRepository>()),
   );
 
@@ -51,28 +50,37 @@ void setupLocator() {
 
   sl.registerLazySingleton<SubscribtionInstitutionRepository>(
         () => SubscribtionInstitutionRepository(
-          sl<SubscriptionInstitutionService>(),
+      sl<SubscriptionInstitutionService>(),
     ),
   );
 
-// Factory since it holds transient UI state
+  // Factory since it holds transient UI state
   sl.registerFactory<SubscriptionInstitutionCubit>(
         () => SubscriptionInstitutionCubit(
-          sl<SubscribtionInstitutionRepository>(),
+      sl<SubscribtionInstitutionRepository>(),
     ),
   );
 
-
-// Register services feature service
+  // Register services feature service
   sl.registerLazySingleton<ServicesService>(
         () => ServicesService(),
   );
 
-  // Register services cubit
+// This creates a fresh services cubit for each services route to avoid using a closed instance.
   sl.registerFactory<ServicesCubit>(
         () => ServicesCubit(sl<ServicesService>()),
   );
 
+
+  // This keeps the dashboard repository available through GetIt.
+  sl.registerLazySingleton<DashboardRepository>(
+        () => DashboardRepository(sl<SupabaseClient>()),
+  );
+
+  // This keeps the dashboard cubit alive to avoid full dashboard reloads on every return.
+  sl.registerLazySingleton<DashboardCubit>(
+        () => DashboardCubit(sl<DashboardRepository>()),
+  );
 
   // ─────────────── BUNDLE ─────────────────
   sl.registerLazySingleton<BundleService>(
@@ -87,30 +95,18 @@ void setupLocator() {
         () => BundleCubit(sl<BundleRepository>()),
   );
 
-  // Register institution bookings feature service.
-  sl.registerLazySingleton<InstitutionBookingsService>(
-        () => InstitutionBookingsService(),
-  );
-
-  // Register institution bookings feature cubit.
-  sl.registerFactory<InstitutionBookingsCubit>(
-        () => InstitutionBookingsCubit(sl<InstitutionBookingsService>()),
-  );
-
-
   // ── Add to your existing injection_container.dart / service_locator.dart ──
-
-// 1. Service
+  // 1. Service
   sl.registerLazySingleton<SubscriberService>(
         () => SubscriberService(sl<SupabaseClient>()),
   );
 
-// 2. Repository
+  // 2. Repository
   sl.registerLazySingleton<SubscriberRepository>(
         () => SubscriberRepository(sl<SubscriberService>()),
   );
 
-// 3. Cubit  ← registerFactory so each navigation creates a fresh instance
+  // 3. Cubit ← registerFactory so each navigation creates a fresh instance
   sl.registerFactory<SubscriberCubit>(
         () => SubscriberCubit(sl<SubscriberRepository>()),
   );

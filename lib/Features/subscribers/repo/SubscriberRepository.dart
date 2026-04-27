@@ -1,6 +1,5 @@
-
-
 import '../../../core/Models/subscriberModel.dart';
+import '../../../core/Models/subscriber_booking_item_model.dart';
 import '../../../core/supabase/SubscriberService.dart';
 
 class SubscriberRepository {
@@ -28,5 +27,16 @@ class SubscriberRepository {
 
   Future<String?> getCurrentInstitutionId() async {
     return _service.getCurrentInstitutionId();
+  }
+
+  // This method returns the selected subscriber bookings inside the current institution.
+  Future<List<SubscriberBookingItemModel>> getSubscriberBookings({
+    required String institutionId,
+    required String subscriberId,
+  }) async {
+    return _service.getSubscriberBookings(
+      institutionId: institutionId,
+      subscriberId: subscriberId,
+    );
   }
 }
