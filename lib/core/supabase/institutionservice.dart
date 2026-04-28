@@ -14,6 +14,7 @@ class InstitutionService {
     required String password,
     required String phone,
     required String address,
+    required String description,
     required String institutionType,
     required String location,
   }) async {
@@ -39,6 +40,7 @@ class InstitutionService {
         email: email,
         phone: phone,
         address: address,
+        description: description,
         institutionType: institutionType,
         location: location,
         status: InstitutionStatus.pending,

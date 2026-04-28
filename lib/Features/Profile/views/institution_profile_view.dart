@@ -17,8 +17,15 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final InstitutionService _service = InstitutionService();
 
+  final _descriptionController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _locationController = TextEditingController();
+
   InstitutionModel? _profile;
   bool _loading = true;
+  bool _isEditMode = false;
+  bool _isSaving = false;
   String? _error;
 
   @override
@@ -27,25 +34,120 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
     _loadProfile();
   }
 
-  // This loads the current institution profile for the profile screen.
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+// This loads the current institution profile for the profile screen.
   Future<void> _loadProfile() async {
     try {
       final profile = await _service.getCurrentProfile();
       if (!mounted) return;
 
+      _fillControllers(profile);
+
       setState(() {
         _profile = profile;
+        _error = null;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
         _loading = false;
       });
     }
   }
+
+  // This fills the editable profile controllers from the currently loaded institution profile.
+  void _fillControllers(InstitutionModel? profile) {
+    _descriptionController.text = profile?.description ?? '';
+    _phoneController.text = profile?.phone ?? '';
+    _addressController.text = profile?.address ?? '';
+    _locationController.text = profile?.location ?? '';
+  }
+
+// This enables profile edit mode for editable institution fields only.
+  void _startEditing() {
+    _fillControllers(_profile);
+    setState(() {
+      _isEditMode = true;
+    });
+  }
+
+// This cancels profile editing and restores the current loaded values.
+  void _cancelEditing() {
+    _fillControllers(_profile);
+    setState(() {
+      _isEditMode = false;
+      _isSaving = false;
+    });
+  }
+
+
+  // This saves the editable institution profile fields and exits edit mode after a successful update.
+  Future<void> _saveProfileChanges() async {
+    if (_profile == null) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final updatedModel = _profile!.copyWith(
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
+        address: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
+        location: _locationController.text.trim(),
+      );
+
+      final updatedProfile = await _service.updateProfile(updatedModel);
+
+      if (!mounted) return;
+
+      _fillControllers(updatedProfile);
+
+      setState(() {
+        _profile = updatedProfile;
+        _isEditMode = false;
+        _isSaving = false;
+        _error = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isSaving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Update failed: $e'),
+        ),
+      );
+    }
+  }
+
+
+
 
   // This opens the subscription screen directly from the profile page.
   void _openSubscription() {
@@ -72,6 +174,8 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
             const SizedBox(height: 16),
             _buildHeroCard(_profile!),
             const SizedBox(height: 16),
+            _buildProfileActions(),
+            const SizedBox(height: 16),
             _buildInfoSection(
               title: 'CONTACT',
               children: [
@@ -79,16 +183,22 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
                   icon: Icons.email_outlined,
                   label: 'Email',
                   value: _profile!.email,
+                  isLocked: true,
                 ),
-                _buildInfoRow(
+                _buildEditableField(
                   icon: Icons.phone_outlined,
                   label: 'Phone',
-                  value: _profile!.phone ?? '—',
+                  controller: _phoneController,
+                  placeholder: 'Add phone number',
+                  keyboardType: TextInputType.phone,
                 ),
-                _buildInfoRow(
+                _buildEditableField(
                   icon: Icons.location_on_outlined,
                   label: 'Address',
-                  value: _profile!.address ?? '—',
+                  controller: _addressController,
+                  placeholder: 'Add address',
+                  keyboardType: TextInputType.streetAddress,
+                  maxLines: 2,
                 ),
               ],
             ),
@@ -96,20 +206,33 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
             _buildInfoSection(
               title: 'INSTITUTION',
               children: [
+                _buildEditableField(
+                  icon: Icons.description_outlined,
+                  label: 'Description',
+                  controller: _descriptionController,
+                  placeholder: 'Add institution description',
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 4,
+                ),
                 _buildInfoRow(
                   icon: Icons.business_outlined,
                   label: 'Institution Type',
                   value: _profile!.institutionType,
+                  isLocked: true,
                 ),
-                _buildInfoRow(
+                _buildEditableField(
                   icon: Icons.link_outlined,
                   label: 'Location Link',
-                  value: _profile!.location,
+                  controller: _locationController,
+                  placeholder: 'Add location link',
+                  keyboardType: TextInputType.url,
+                  maxLines: 2,
                 ),
                 _buildInfoRow(
                   icon: Icons.calendar_today_outlined,
                   label: 'Created At',
                   value: _formatDate(_profile!.createdAt),
+                  isLocked: true,
                 ),
               ],
             ),
@@ -121,6 +244,7 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
                   icon: Icons.verified_outlined,
                   label: 'Approval Status',
                   value: _profile!.status,
+                  isLocked: true,
                 ),
                 _buildInfoRow(
                   icon: Icons.stars_outlined,
@@ -128,10 +252,12 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
                   value: _profile!.subscribed
                       ? 'Active'
                       : 'Inactive',
+                  isLocked: true,
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -283,6 +409,7 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
     required IconData icon,
     required String label,
     required String value,
+    bool isLocked = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -307,13 +434,25 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textLight,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textLight,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (isLocked) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.lock_outline,
+                        size: 14,
+                        color: AppColors.textLight,
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -331,6 +470,76 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
       ),
     );
   }
+
+
+
+  Widget _buildProfileActions() {
+    if (!_isEditMode) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          // This enters profile edit mode for institution-managed fields.
+          onPressed: _startEditing,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            side: const BorderSide(color: AppColors.textPrimary),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Edit Profile'),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            // This cancels profile editing and restores the loaded profile values.
+            onPressed: _cancelEditing,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: AppColors.textPrimary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text('Cancel'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            // This saves the editable institution profile fields through InstitutionService.updateProfile.
+            onPressed: _isSaving ? null : _saveProfileChanges,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: _isSaving
+                ? const SizedBox(
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+                : const Text('Save Changes'),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildErrorState() {
     return Center(
@@ -376,6 +585,89 @@ class _InstitutionProfileViewState extends State<InstitutionProfileView> {
       ),
     );
   }
+
+
+  Widget _buildEditableField({
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+    required String placeholder,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    final value = controller.text.trim().isEmpty ? '—' : controller.text.trim();
+
+    if (!_isEditMode) {
+      return _buildInfoRow(
+        icon: icon,
+        label: label,
+        value: value,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  maxLines: maxLines,
+                  decoration: InputDecoration(
+                    hintText: placeholder,
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   String _formatDate(DateTime d) {
     const months = [

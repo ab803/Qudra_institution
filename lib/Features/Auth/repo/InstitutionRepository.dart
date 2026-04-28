@@ -3,12 +3,12 @@ import '../../../core/Models/institutionModel.dart';
 
 abstract class IInstitutionRepository {
   Future<InstitutionModel> register({
-
     required String name,
     required String email,
     required String password,
     required String phone,
     required String address,
+    required String description,
     required String institutionType,
     required String location,
   });

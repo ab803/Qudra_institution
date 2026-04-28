@@ -11,6 +11,7 @@ import '../../Features/Auth/signup/signup.dart';
 import '../../Features/Dashboard/DashboardView.dart';
 import '../../Features/Profile/views/institution_profile_view.dart';
 import '../../Features/Services/services/Models/service_model.dart';
+import '../../Features/Splash/View/splash_view.dart';
 import '../../Features/subscribers/SubscribersView.dart';
 import '../../Features/subscribers/widgets/Viewprofile.dart';
 import '../../Features/subscribtion/subscribtionView.dart';
@@ -25,8 +26,15 @@ import '../../Features/Services/views/services_list_view.dart';
 
 class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/institutionLogin',
+    initialLocation: '/institutionSplash',
     routes: [
+      // This route opens the custom institution splash experience before login or dashboard.
+      GoRoute(
+        path: '/institutionSplash',
+        builder: (context, state) {
+          return const InstitutionSplashView();
+        },
+      ),
       // Services list route
       GoRoute(
         path: '/services',
@@ -37,7 +45,6 @@ class AppRouter {
           );
         },
       ),
-
       // Add service route
       GoRoute(
         path: '/services/add',
@@ -48,13 +55,11 @@ class AppRouter {
           );
         },
       ),
-
       // Edit service route
       GoRoute(
         path: '/services/edit',
         builder: (context, state) {
           final service = state.extra as ServiceModel;
-
           // This keeps using the shared ServicesCubit instance without allowing the route provider to close it.
           return BlocProvider.value(
             value: sl<ServicesCubit>(),
@@ -62,7 +67,6 @@ class AppRouter {
           );
         },
       ),
-
       // ─────────────────────────────────────────
       // LOGIN
       // ─────────────────────────────────────────
@@ -75,7 +79,6 @@ class AppRouter {
           );
         },
       ),
-
       // ─────────────────────────────────────────
       // SIGN UP
       // ─────────────────────────────────────────
@@ -107,7 +110,6 @@ class AppRouter {
           );
         },
       ),
-
       // ─────────────────────────────────────────
       // DASHBOARD
       // ─────────────────────────────────────────
@@ -119,7 +121,6 @@ class AppRouter {
           const Dashboardview(),
         ),
       ),
-
       // ─────────────────────────────────────────
       // PROFILE
       // ─────────────────────────────────────────
@@ -132,7 +133,6 @@ class AppRouter {
           const InstitutionProfileView(),
         ),
       ),
-
       // ─────────────────────────────────────────
       // SUBSCRIBERS
       // ─────────────────────────────────────────
@@ -144,7 +144,6 @@ class AppRouter {
           const SubscribersView(),
         ),
       ),
-
       // router
       GoRoute(
         path: '/viewProfile',
@@ -154,7 +153,6 @@ class AppRouter {
           ViewProfileView(subscriber: state.extra as SubscriberModel),
         ),
       ),
-
       // In your GoRouter or wherever you push this screen
       GoRoute(
         path: '/subscription',

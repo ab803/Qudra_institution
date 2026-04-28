@@ -18,6 +18,7 @@ class InstitutionAuthCubit extends Cubit<InstitutionAuthState> {
     required String password,
     required String phone,
     required String address,
+    required String description,
     required String institutionType,
     required String location
   }) async {
@@ -29,6 +30,7 @@ class InstitutionAuthCubit extends Cubit<InstitutionAuthState> {
         password: password,
         phone: phone,
         address: address,
+        description: description,
         institutionType: institutionType,
         location: location,
       );

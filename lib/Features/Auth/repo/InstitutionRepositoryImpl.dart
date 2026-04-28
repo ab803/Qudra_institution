@@ -18,17 +18,20 @@ class InstitutionRepositoryImpl implements IInstitutionRepository {
     required String password,
     required String phone,
     required String address,
+    required String description,
     required String institutionType,
     required String location,
   }) async {
+
     return await _service.register(
-      name:               name,
-      email:              email,
-      password:           password,
-      phone:              phone,
-      address:            address,
-      institutionType:    institutionType,
-      location:           location,
+      name: name,
+      email: email,
+      password: password,
+      phone: phone,
+      address: address,
+      description: description,
+      institutionType: institutionType,
+      location: location,
     );
   }
 

@@ -8,6 +8,7 @@ import '../ViewModel/auth_state.dart';
 import '../widgets/AppTextField.dart';
 import '../widgets/AuthButton.dart';
 
+
 class InstitutionSignUpView extends StatefulWidget {
   const InstitutionSignUpView({super.key});
 
@@ -21,6 +22,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
 
   String? _selectedType;
@@ -41,6 +43,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
     _passwordController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
   }
@@ -51,6 +54,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
         _passwordController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
+        _descriptionController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty ||
         _selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,6 +72,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
       password: _passwordController.text.trim(),
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
+      description: _descriptionController.text.trim(),
       institutionType: _selectedType!,
       location: _locationController.text.trim(),
     );
@@ -119,6 +124,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 style: AppTextStyles.description,
               ),
               const SizedBox(height: 28),
+
               CustomTextField(
                 controller: _nameController,
                 label: 'Institution Name *',
@@ -127,6 +133,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 const Icon(Icons.business, color: AppColors.iconGrey),
                 keyboardType: TextInputType.text,
               ),
+
               CustomTextField(
                 controller: _emailController,
                 label: 'Official Email *',
@@ -135,6 +142,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 const Icon(Icons.mail_outline, color: AppColors.iconGrey),
                 keyboardType: TextInputType.emailAddress,
               ),
+
               CustomTextField(
                 controller: _passwordController,
                 label: 'Password',
@@ -144,14 +152,15 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 const Icon(Icons.lock_outline, color: AppColors.iconGrey),
                 keyboardType: TextInputType.visiblePassword,
               ),
+
               CustomTextField(
                 controller: _phoneController,
                 label: 'Phone Number *',
                 hint: '01234567890',
-                prefixIcon:
-                const Icon(Icons.phone, color: AppColors.iconGrey),
+                prefixIcon: const Icon(Icons.phone, color: AppColors.iconGrey),
                 keyboardType: TextInputType.phone,
               ),
+
               CustomTextField(
                 controller: _addressController,
                 label: 'Address *',
@@ -161,6 +170,17 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                   color: AppColors.iconGrey,
                 ),
                 keyboardType: TextInputType.streetAddress,
+              ),
+
+              CustomTextField(
+                controller: _descriptionController,
+                label: 'Institution Description *',
+                hint: 'Briefly describe the institution and its mission',
+                prefixIcon: const Icon(
+                  Icons.description_outlined,
+                  color: AppColors.iconGrey,
+                ),
+                keyboardType: TextInputType.multiline,
               ),
 
               // Dropdown
@@ -206,6 +226,7 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                   ],
                 ),
               ),
+
               CustomTextField(
                 controller: _locationController,
                 label: 'Location Link',
@@ -216,14 +237,18 @@ class _InstitutionSignUpViewState extends State<InstitutionSignUpView> {
                 ),
                 keyboardType: TextInputType.url,
               ),
+
               const SizedBox(height: 10),
+
               AuthButton(
                 label: 'Register Institution',
                 onPressed: _onSignUp,
                 trailingIcon:
                 const Icon(Icons.arrow_forward, color: Colors.white),
               ),
+
               const SizedBox(height: 24),
+
               Center(
                 child: GestureDetector(
                   onTap: () => context.go('/institutionLogin'),
