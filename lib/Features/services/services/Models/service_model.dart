@@ -9,8 +9,11 @@ class ServiceModel {
   final bool isFree;
   final int durationMinutes;
   final String locationMode; // on_site / home_visit / online
-  final String bookingType; // request
+  final String bookingType; // instant_slot
   final String? availabilityNotes;
+  final List<String> workingDays;
+  final String? workingStartTime;
+  final String? workingEndTime;
   final bool isActive;
   final DateTime? createdAt;
 
@@ -27,6 +30,9 @@ class ServiceModel {
     required this.locationMode,
     required this.bookingType,
     this.availabilityNotes,
+    required this.workingDays,
+    this.workingStartTime,
+    this.workingEndTime,
     required this.isActive,
     this.createdAt,
   });
@@ -47,8 +53,16 @@ class ServiceModel {
       isFree: (json['is_free'] as bool?) ?? false,
       durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 30,
       locationMode: (json['location_mode'] as String?) ?? 'on_site',
-      bookingType: (json['booking_type'] as String?) ?? 'request',
+      bookingType: (json['booking_type'] as String?) ?? 'instant_slot',
       availabilityNotes: json['availability_notes'] as String?,
+      // This block reads the structured working days list from Supabase.
+      workingDays: (json['working_days'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      // This block reads the service working start time in HH:mm format.
+      workingStartTime: json['working_start_time']?.toString(),
+      // This block reads the service working end time in HH:mm format.
+      workingEndTime: json['working_end_time']?.toString(),
       isActive: (json['is_active'] as bool?) ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -70,6 +84,12 @@ class ServiceModel {
     'location_mode': locationMode,
     'booking_type': bookingType,
     'availability_notes': availabilityNotes,
+    // This field stores the selected working days for the service.
+    'working_days': workingDays,
+    // This field stores the service daily working start time.
+    'working_start_time': workingStartTime,
+    // This field stores the service daily working end time.
+    'working_end_time': workingEndTime,
     'is_active': isActive,
   };
 
@@ -87,6 +107,12 @@ class ServiceModel {
     'location_mode': locationMode,
     'booking_type': bookingType,
     'availability_notes': availabilityNotes,
+    // This field updates the selected working days for the service.
+    'working_days': workingDays,
+    // This field updates the service daily working start time.
+    'working_start_time': workingStartTime,
+    // This field updates the service daily working end time.
+    'working_end_time': workingEndTime,
     'is_active': isActive,
   };
 
@@ -104,6 +130,9 @@ class ServiceModel {
     String? locationMode,
     String? bookingType,
     String? availabilityNotes,
+    List<String>? workingDays,
+    String? workingStartTime,
+    String? workingEndTime,
     bool? isActive,
     DateTime? createdAt,
   }) {
@@ -121,6 +150,12 @@ class ServiceModel {
       locationMode: locationMode ?? this.locationMode,
       bookingType: bookingType ?? this.bookingType,
       availabilityNotes: availabilityNotes ?? this.availabilityNotes,
+      // This field keeps the updated working days list in copied models.
+      workingDays: workingDays ?? this.workingDays,
+      // This field keeps the updated working start time in copied models.
+      workingStartTime: workingStartTime ?? this.workingStartTime,
+      // This field keeps the updated working end time in copied models.
+      workingEndTime: workingEndTime ?? this.workingEndTime,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
     );

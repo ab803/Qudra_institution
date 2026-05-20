@@ -20,17 +20,16 @@ class AddEditServiceView extends StatefulWidget {
 
 class _AddEditServiceViewState extends State<AddEditServiceView> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _durationController = TextEditingController();
-  final _availabilityNotesController = TextEditingController();
 
   bool _isFree = false;
   bool _isActive = true;
   String _locationMode = 'on_site';
-  String _bookingType = 'request';
 
   final List<String> _allDisabilities = [
     'Physical',
@@ -42,11 +41,30 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
 
   final List<String> _selectedDisabilities = [];
 
+  // This list defines the allowed working days shown to the institution.
+  final List<String> _allWorkingDays = const [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+
+  // This list stores the selected working days for the current service.
+  final List<String> _selectedWorkingDays = [];
+
+  // These values store the selected daily working start and end times.
+  TimeOfDay? _workingStartTime;
+  TimeOfDay? _workingEndTime;
+
   bool get isEditMode => widget.existingService != null;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.existingService != null) {
       final service = widget.existingService!;
       _nameController.text = service.name;
@@ -54,13 +72,107 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
       _descriptionController.text = service.description ?? '';
       _priceController.text = service.price.toString();
       _durationController.text = service.durationMinutes.toString();
-      _availabilityNotesController.text = service.availabilityNotes ?? '';
       _isFree = service.isFree;
       _isActive = service.isActive;
       _locationMode = service.locationMode;
-      _bookingType = service.bookingType;
       _selectedDisabilities.addAll(service.supportedDisabilities);
+      _selectedWorkingDays.addAll(service.workingDays);
+
+      // This block restores the saved working start and end times in edit mode.
+      _workingStartTime = _parseTimeOfDay(service.workingStartTime);
+      _workingEndTime = _parseTimeOfDay(service.workingEndTime);
     }
+  }
+
+  // This helper converts a stored HH:mm value into a TimeOfDay instance.
+  TimeOfDay? _parseTimeOfDay(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final parts = value.split(':');
+    if (parts.length < 2) return null;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null || minute == null) return null;
+
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  // This helper converts TimeOfDay into a stable HH:mm value for storage.
+  String? _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return null;
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  // This helper renders the selected time as a readable label in the UI.
+  String _displayTime(TimeOfDay? time) {
+    if (time == null) return 'Select time';
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+
+  // This helper opens a time picker and stores the selected working time.
+  Future<void> _pickWorkingTime({
+    required bool isStartTime,
+  }) async {
+    final initialTime = isStartTime
+        ? (_workingStartTime ?? const TimeOfDay(hour: 9, minute: 0))
+        : (_workingEndTime ?? const TimeOfDay(hour: 17, minute: 0));
+
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (selectedTime == null) return;
+
+    setState(() {
+      if (isStartTime) {
+        _workingStartTime = selectedTime;
+      } else {
+        _workingEndTime = selectedTime;
+      }
+    });
+  }
+
+  // This helper validates the selected working hours before saving the service.
+  bool _validateWorkingHours() {
+    if (_selectedWorkingDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one working day'),
+        ),
+      );
+      return false;
+    }
+
+    if (_workingStartTime == null || _workingEndTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select both start and end working times'),
+        ),
+      );
+      return false;
+    }
+
+    final startMinutes =
+        (_workingStartTime!.hour * 60) + _workingStartTime!.minute;
+    final endMinutes = (_workingEndTime!.hour * 60) + _workingEndTime!.minute;
+
+    if (endMinutes <= startMinutes) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Working end time must be after working start time'),
+        ),
+      );
+      return false;
+    }
+
+    return true;
   }
 
   ServiceModel _buildServiceModel() {
@@ -79,10 +191,11 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
       isFree: _isFree,
       durationMinutes: int.tryParse(_durationController.text) ?? 30,
       locationMode: _locationMode,
-      bookingType: _bookingType,
-      availabilityNotes: _availabilityNotesController.text.trim().isEmpty
-          ? null
-          : _availabilityNotesController.text.trim(),
+      bookingType: 'instant_slot',
+      availabilityNotes: null,
+      workingDays: _selectedWorkingDays,
+      workingStartTime: _formatTimeOfDay(_workingStartTime),
+      workingEndTime: _formatTimeOfDay(_workingEndTime),
       isActive: _isActive,
       createdAt: widget.existingService?.createdAt ?? DateTime.now(),
     );
@@ -97,6 +210,10 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
           content: Text('Please select at least one supported disability'),
         ),
       );
+      return;
+    }
+
+    if (!_validateWorkingHours()) {
       return;
     }
 
@@ -121,14 +238,12 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
             context.go('/services');
           }
         }
-
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F8FA),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-
           // This back button always returns to the previous page, or falls back to the services list if there is no back stack.
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -140,7 +255,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
               }
             },
           ),
-
           title: Text(
             isEditMode ? 'Edit Service' : 'Add Service',
             style: const TextStyle(color: Colors.black),
@@ -211,13 +325,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                           const ['on_site', 'home_visit', 'online'],
                               (v) => setState(() => _locationMode = v!),
                         ),
-                        const SizedBox(height: 12),
-                        _dropdown(
-                          'Booking Type',
-                          _bookingType,
-                          const ['request'],
-                              (v) => setState(() => _bookingType = v!),
-                        ),
                       ],
                     ),
                   ),
@@ -228,7 +335,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                       children: _allDisabilities.map((item) {
                         final selected =
                         _selectedDisabilities.contains(item);
-
                         return FilterChip(
                           selected: selected,
                           label: Text(
@@ -258,11 +364,62 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                     ),
                   ),
                   _section(
-                    title: 'Availability Notes',
-                    child: _input(
-                      _availabilityNotesController,
-                      'Notes',
-                      maxLines: 3,
+                    title: 'Working Hours',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // This block lets the institution choose the active daily working days.
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _allWorkingDays.map((day) {
+                            final selected =
+                            _selectedWorkingDays.contains(day);
+                            return FilterChip(
+                              selected: selected,
+                              label: Text(
+                                day,
+                                style: TextStyle(
+                                  color:
+                                  selected ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              selectedColor: Colors.black,
+                              backgroundColor: Colors.white,
+                              checkmarkColor: Colors.white,
+                              side: BorderSide(
+                                color: selected
+                                    ? Colors.black
+                                    : Colors.black26,
+                              ),
+                              onSelected: (value) {
+                                setState(() {
+                                  if (value) {
+                                    _selectedWorkingDays.add(day);
+                                  } else {
+                                    _selectedWorkingDays.remove(day);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                        // This block lets the institution pick the daily working start time.
+                        _timePickerTile(
+                          label: 'Working Start Time',
+                          value: _displayTime(_workingStartTime),
+                          onTap: () => _pickWorkingTime(isStartTime: true),
+                        ),
+                        const SizedBox(height: 12),
+                        // This block lets the institution pick the daily working end time.
+                        _timePickerTile(
+                          label: 'Working End Time',
+                          value: _displayTime(_workingEndTime),
+                          onTap: () => _pickWorkingTime(isStartTime: false),
+                        ),
+                      ],
                     ),
                   ),
                   _section(
@@ -415,6 +572,54 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: Colors.black),
           ),
+        ),
+      ),
+    );
+  }
+
+  // This widget renders a reusable time selector tile for working hours input.
+  Widget _timePickerTile({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2F2F2),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.transparent),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.access_time, color: Colors.black),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 16, color: Colors.black54),
+          ],
         ),
       ),
     );
