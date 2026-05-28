@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qudra_institution/core/styles/AppColors.dart';
-
+import 'package:qudra_institution/core/styles/AppTextStyles.dart';
 import '../../../core/Models/dashboard_stats_model.dart';
-
+import '../../../core/responsive/responsive_helper.dart';
 
 class ChartSection extends StatefulWidget {
   final List<MonthlyStats> monthlyData;
+
   const ChartSection({Key? key, required this.monthlyData}) : super(key: key);
 
   @override
@@ -18,51 +19,55 @@ class _ChartSectionState extends State<ChartSection> {
   @override
   Widget build(BuildContext context) {
     final data = widget.monthlyData;
+    final isDesktop = ResponsiveHelper.isDesktop(context);
     final maxCount = data.map((e) => e.count).fold(1, (a, b) => a > b ? a : b);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isDesktop ? 28 : 22),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.softShadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 14,
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Subscription\nGrowth',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      height: 1.2,
+              const SizedBox(
+                width: 230,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Subscription Growth',
+                      style: AppTextStyles.sectionTitle,
                     ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Monthly unique\nbooking users',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
+                    SizedBox(height: 6),
+                    Text(
+                      'Monthly unique booking users',
+                      style: AppTextStyles.pageDescription,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surfaceMuted,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildToggleBtn('Monthly', _isMonthly),
                     _buildToggleBtn('Yearly', !_isMonthly),
@@ -71,9 +76,9 @@ class _ChartSectionState extends State<ChartSection> {
               ),
             ],
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 34),
           SizedBox(
-            height: 160,
+            height: isDesktop ? 210 : 180,
             child: data.every((m) => m.count == 0)
                 ? const Center(
               child: Text(
@@ -81,15 +86,31 @@ class _ChartSectionState extends State<ChartSection> {
                 style: TextStyle(color: AppColors.textSecondary),
               ),
             )
-                : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: data.map((m) {
-                final heightFactor =
-                (m.count / maxCount).clamp(0.05, 1.0);
-                final opacity = 0.15 + (heightFactor * 0.85);
-                return _buildBar(m!.month, heightFactor, opacity, m.count);
-              }).toList(),
+                : LayoutBuilder(
+              builder: (context, constraints) {
+                final itemWidth =
+                (constraints.maxWidth / data.length).clamp(32.0, 72.0);
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: data.map((m) {
+                    final heightFactor =
+                    (m.count / maxCount).clamp(0.05, 1.0);
+                    final opacity = 0.15 + (heightFactor * 0.85);
+
+                    return SizedBox(
+                      width: itemWidth,
+                      child: _buildBar(
+                        m.month,
+                        heightFactor,
+                        opacity,
+                        m.count,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ),
         ],
@@ -100,13 +121,19 @@ class _ChartSectionState extends State<ChartSection> {
   Widget _buildToggleBtn(String text, bool isSelected) {
     return GestureDetector(
       onTap: () => setState(() => _isMonthly = text == 'Monthly'),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
           boxShadow: isSelected
-              ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)]
+              ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+            )
+          ]
               : null,
         ),
         child: Text(
@@ -121,23 +148,37 @@ class _ChartSectionState extends State<ChartSection> {
     );
   }
 
-  Widget _buildBar(String label, double heightFactor, double opacity, int count) {
+  Widget _buildBar(
+      String label,
+      double heightFactor,
+      double opacity,
+      int count,
+      ) {
     return Tooltip(
       message: '$count users',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Container(
-            width: 24,
-            height: 130 * heightFactor,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(opacity),
-              borderRadius: BorderRadius.circular(4),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                heightFactor: heightFactor,
+                child: Container(
+                  width: 26,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(opacity),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w800,

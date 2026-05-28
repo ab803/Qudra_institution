@@ -8,9 +8,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/ChartSection.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/MetricCard.dart';
 import 'package:qudra_institution/Features/Dashboard/widgets/QuickActionButton.dart';
-import 'package:qudra_institution/Features/Dashboard/widgets/PortalDrawer.dart';
 import '../../core/styles/AppColors.dart';
 import '../../core/styles/AppTextStyles.dart';
+import '../../core/responsive/responsive_helper.dart';
+import '../../core/widgets/portal_page_header.dart';
+import '../../core/widgets/portal_responsive_scaffold.dart';
+import '../../core/widgets/responsive_grid.dart';
+import '../../core/widgets/responsive_page_shell.dart';
 import 'helper.dart';
 
 class Dashboardview extends StatelessWidget {
@@ -30,23 +34,14 @@ class Dashboardview extends StatelessWidget {
   }
 }
 
-class _DashboardContent extends StatefulWidget {
+class _DashboardContent extends StatelessWidget {
   const _DashboardContent();
 
   @override
-  State<_DashboardContent> createState() => _DashboardContentState();
-}
-
-class _DashboardContentState extends State<_DashboardContent> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      drawer: const PortalDrawer(currentRoute: '/Dashboard'),
+    return PortalResponsiveScaffold(
+      currentRoute: '/Dashboard',
+      title: 'QUDRA',
       body: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           if (state is DashboardLoading || state is DashboardInitial) {
@@ -54,133 +49,235 @@ class _DashboardContentState extends State<_DashboardContent> {
           }
 
           if (state is DashboardError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Failed to load stats',
-                    style: AppTextStyles.description,
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      final id = Supabase.instance.client.auth.currentUser!.id;
-                      context.read<DashboardCubit>().loadStats(id);
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+            return _DashboardErrorState(
+              onRetry: () {
+                final id = Supabase.instance.client.auth.currentUser!.id;
+                context.read<DashboardCubit>().loadStats(id, forceRefresh: true);
+              },
             );
           }
 
           final stats = (state as DashboardLoaded).stats;
+          final isDesktop = ResponsiveHelper.isDesktop(context);
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  const Text('Overview', style: AppTextStyles.largeTitle),
-                  const SizedBox(height: 8),
-                  Text(
-                    'System status and institutional metrics\nfor Qudra Admin.',
-                    style: AppTextStyles.description.copyWith(fontSize: 16),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // ── Real data from Supabase ──
-                  MetricCard(
-                    title: 'TOTAL SUBSCRIBERS',
-                    value: stats.totalSubscribers.toString(),
-                    statusText: 'Unique users who booked',
-                    statusIcon: Icons.people_alt_rounded,
-                    statusColor: AppColors.success,
-                    isWhiteCard: true,
-                  ),
-                  const SizedBox(height: 16),
-                  MetricCard(
-                    title: 'ACTIVE SERVICES',
-                    value: stats.activeServices.toString(),
-                    statusText: 'Available now',
-                    statusIcon: Icons.check_circle,
-                    statusColor: AppColors.textPrimary,
-                    isWhiteCard: false,
-                  ),
-                  const SizedBox(height: 32),
-
-                  // ── Chart with real monthly data ──
+          return ResponsivePageShell(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PortalPageHeader(
+                  overline: 'Institution Portal',
+                  title: 'Overview',
+                  subtitle: 'System status and institutional metrics for Qudra Admin.',
+                  trailing: isDesktop
+                      ? SizedBox(
+                    width: 260,
+                    child: QuickActionButton(
+                      title: 'Manage Subscription',
+                      icon: Icons.stars_rounded,
+                      bgColor: AppColors.textPrimary,
+                      textColor: AppColors.white,
+                      onPressed: () => context.go('/subscription'),
+                    ),
+                  )
+                      : null,
+                ),
+                const SizedBox(height: 28),
+                ResponsiveGrid(
+                  mobileColumns: 1,
+                  tabletColumns: 2,
+                  desktopColumns: 2,
+                  wideDesktopColumns: 2,
+                  childAspectRatio: isDesktop ? 2.25 : 1.75,
+                  children: [
+                    MetricCard(
+                      title: 'TOTAL SUBSCRIBERS',
+                      value: stats.totalSubscribers.toString(),
+                      statusText: 'Unique users who booked',
+                      statusIcon: Icons.people_alt_rounded,
+                      statusColor: AppColors.success,
+                      isWhiteCard: true,
+                    ),
+                    MetricCard(
+                      title: 'ACTIVE SERVICES',
+                      value: stats.activeServices.toString(),
+                      statusText: 'Available now',
+                      statusIcon: Icons.check_circle,
+                      statusColor: AppColors.textPrimary,
+                      isWhiteCard: false,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                if (isDesktop)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 7,
+                        child: ChartSection(monthlyData: stats.monthlyGrowth),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        flex: 4,
+                        child: _QuickActionsPanel(),
+                      ),
+                    ],
+                  )
+                else ...[
                   ChartSection(monthlyData: stats.monthlyGrowth),
-                  const SizedBox(height: 32),
-
-                  const Text('Quick Actions', style: AppTextStyles.screenTitle),
-                  const SizedBox(height: 16),
-
-                  QuickActionButton(
-                    title: 'Manage Subscription',
-                    icon: Icons.stars,
-                    bgColor: AppColors.textPrimary,
-                    textColor: AppColors.white,
-                    onPressed: () => context.go('/subscription'),
-                  ),
-                  const SizedBox(height: 12),
-
-                  QuickActionButton(
-                    title: 'Manage Services',
-                    icon: Icons.layers,
-                    bgColor: AppColors.textPrimary,
-                    textColor: AppColors.white,
-                    onPressed: () async {
-                      final allowed = await checkSubscription(context);
-                      if (allowed && context.mounted) context.go('/services');
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  QuickActionButton(
-                    title: 'Add Service',
-                    icon: Icons.add,
-                    bgColor: AppColors.textPrimary,
-                    textColor: AppColors.white,
-                    onPressed: () async {
-                      final allowed = await checkSubscription(context);
-                      if (allowed && context.mounted) context.go('/services/add');
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // This quick action opens the subscribers screen directly from the dashboard.
-                  QuickActionButton(
-                    title: 'View Subscribers',
-                    icon: Icons.people,
-                    bgColor: AppColors.textPrimary,
-                    textColor: AppColors.white,
-                    onPressed: () => context.go('/subscribers'),
-                  ),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
+                  _QuickActionsPanel(),
                 ],
-              ),
+                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+              ],
             ),
           );
         },
       ),
     );
   }
+}
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.background,
-      elevation: 0,
-      leading: IconButton(
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+class _QuickActionsPanel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = ResponsiveHelper.isDesktop(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.softShadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
-      title: const Text('QUDRA', style: AppTextStyles.appBarTitle),
-      centerTitle: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Quick Actions', style: AppTextStyles.sectionTitle),
+          const SizedBox(height: 6),
+          const Text(
+            'Jump into the most important institution workflows.',
+            style: AppTextStyles.pageDescription,
+          ),
+          const SizedBox(height: 18),
+          if (isDesktop)
+            Column(
+              children: _actions(context)
+                  .map(
+                    (action) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: action,
+                ),
+              )
+                  .toList(),
+            )
+          else
+            ..._actions(context).map(
+                  (action) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: action,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _actions(BuildContext context) {
+    return [
+      QuickActionButton(
+        title: 'Manage Subscription',
+        icon: Icons.stars_rounded,
+        bgColor: AppColors.textPrimary,
+        textColor: AppColors.white,
+        onPressed: () => context.go('/subscription'),
+      ),
+      QuickActionButton(
+        title: 'Manage Services',
+        icon: Icons.layers_rounded,
+        bgColor: AppColors.textPrimary,
+        textColor: AppColors.white,
+        onPressed: () async {
+          final allowed = await checkSubscription(context);
+          if (allowed && context.mounted) context.go('/services');
+        },
+      ),
+      QuickActionButton(
+        title: 'Add Service',
+        icon: Icons.add_rounded,
+        bgColor: AppColors.textPrimary,
+        textColor: AppColors.white,
+        onPressed: () async {
+          final allowed = await checkSubscription(context);
+          if (allowed && context.mounted) context.go('/services/add');
+        },
+      ),
+      QuickActionButton(
+        title: 'View Subscribers',
+        icon: Icons.people_rounded,
+        bgColor: AppColors.textPrimary,
+        textColor: AppColors.white,
+        onPressed: () => context.go('/subscribers'),
+      ),
+    ];
+  }
+}
+
+class _DashboardErrorState extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _DashboardErrorState({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxWidth: 420),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error, size: 42),
+            const SizedBox(height: 12),
+            const Text(
+              'Failed to load stats',
+              style: AppTextStyles.sectionTitle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please retry loading your dashboard metrics.',
+              style: AppTextStyles.description,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.textPrimary,
+                foregroundColor: AppColors.white,
+                elevation: 0,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

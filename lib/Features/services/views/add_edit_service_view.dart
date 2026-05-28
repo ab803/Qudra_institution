@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/responsive/responsive_helper.dart';
+import '../../../core/styles/AppColors.dart';
+import '../../../core/styles/AppTextStyles.dart';
+import '../../../core/widgets/portal_page_header.dart';
+import '../../../core/widgets/responsive_page_shell.dart';
 import '../services/Models/service_model.dart';
 import '../viewmodel/services_cubit.dart';
 import '../viewmodel/services_state.dart';
@@ -20,7 +25,6 @@ class AddEditServiceView extends StatefulWidget {
 
 class _AddEditServiceViewState extends State<AddEditServiceView> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -84,17 +88,24 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
     }
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _categoryController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _durationController.dispose();
+    super.dispose();
+  }
+
   // This helper converts a stored HH:mm value into a TimeOfDay instance.
   TimeOfDay? _parseTimeOfDay(String? value) {
     if (value == null || value.trim().isEmpty) return null;
     final parts = value.split(':');
     if (parts.length < 2) return null;
-
     final hour = int.tryParse(parts[0]);
     final minute = int.tryParse(parts[1]);
-
     if (hour == null || minute == null) return null;
-
     return TimeOfDay(hour: hour, minute: minute);
   }
 
@@ -213,9 +224,7 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
       return;
     }
 
-    if (!_validateWorkingHours()) {
-      return;
-    }
+    if (!_validateWorkingHours()) return;
 
     final service = _buildServiceModel();
 
@@ -228,6 +237,8 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = ResponsiveHelper.isDesktop(context);
+
     return BlocListener<ServicesCubit, ServicesState>(
       listener: (context, state) {
         if (state is ServicesLoaded) {
@@ -240,16 +251,16 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           elevation: 0,
-          // This back button always returns to the previous page, or falls back to the services list if there is no back stack.
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            // This back button always returns to the previous page, or falls back to the services list if there is no back stack.
             onPressed: () {
               if (context.canPop()) {
-                context.pop(true);
+                context.pop(false);
               } else {
                 context.go('/services');
               }
@@ -257,204 +268,124 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
           ),
           title: Text(
             isEditMode ? 'Edit Service' : 'Add Service',
-            style: const TextStyle(color: Colors.black),
+            style: AppTextStyles.appBarTitle,
           ),
-          iconTheme: const IconThemeData(color: Colors.black),
+          centerTitle: true,
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            physics: const BouncingScrollPhysics(),
+          child: ResponsivePageShell(
+            maxWidth: isDesktop ? 1180 : double.infinity,
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _section(
-                    title: 'Basic Information',
-                    child: Column(
-                      children: [
-                        _input(_nameController, 'Service Name'),
-                        const SizedBox(height: 12),
-                        _input(_categoryController, 'Category'),
-                        const SizedBox(height: 12),
-                        _input(
-                          _descriptionController,
-                          'Description',
-                          maxLines: 3,
-                        ),
-                      ],
-                    ),
-                  ),
-                  _section(
-                    title: 'Pricing',
-                    child: Column(
-                      children: [
-                        SwitchListTile(
-                          value: _isFree,
-                          title: const Text('Is this service free?'),
-                          onChanged: (v) => setState(() => _isFree = v),
-                          activeColor: Colors.white,
-                          activeTrackColor: Colors.black,
-                          inactiveThumbColor: Colors.black,
-                          inactiveTrackColor: Colors.white,
-                          trackOutlineColor:
-                          MaterialStateProperty.all(Colors.black26),
-                        ),
-                        if (!_isFree)
-                          _input(
-                            _priceController,
-                            'Price',
-                            keyboardType: TextInputType.number,
-                          ),
-                      ],
-                    ),
-                  ),
-                  _section(
-                    title: 'Service Details',
-                    child: Column(
-                      children: [
-                        _input(
-                          _durationController,
-                          'Duration (minutes)',
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 12),
-                        _dropdown(
-                          'Location Mode',
-                          _locationMode,
-                          const ['on_site', 'home_visit', 'online'],
-                              (v) => setState(() => _locationMode = v!),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _section(
-                    title: 'Supported Disabilities',
-                    child: Wrap(
-                      spacing: 8,
-                      children: _allDisabilities.map((item) {
-                        final selected =
-                        _selectedDisabilities.contains(item);
-                        return FilterChip(
-                          selected: selected,
-                          label: Text(
-                            item,
-                            style: TextStyle(
-                              color:
-                              selected ? Colors.white : Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          selectedColor: Colors.black,
-                          backgroundColor: Colors.white,
-                          checkmarkColor: Colors.white,
-                          side: BorderSide(
-                            color:
-                            selected ? Colors.black : Colors.black26,
-                          ),
-                          onSelected: (v) {
-                            setState(() {
-                              v
-                                  ? _selectedDisabilities.add(item)
-                                  : _selectedDisabilities.remove(item);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  _section(
-                    title: 'Working Hours',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // This block lets the institution choose the active daily working days.
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _allWorkingDays.map((day) {
-                            final selected =
-                            _selectedWorkingDays.contains(day);
-                            return FilterChip(
-                              selected: selected,
-                              label: Text(
-                                day,
-                                style: TextStyle(
-                                  color:
-                                  selected ? Colors.white : Colors.black,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              selectedColor: Colors.black,
-                              backgroundColor: Colors.white,
-                              checkmarkColor: Colors.white,
-                              side: BorderSide(
-                                color: selected
-                                    ? Colors.black
-                                    : Colors.black26,
-                              ),
-                              onSelected: (value) {
-                                setState(() {
-                                  if (value) {
-                                    _selectedWorkingDays.add(day);
-                                  } else {
-                                    _selectedWorkingDays.remove(day);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 16),
-                        // This block lets the institution pick the daily working start time.
-                        _timePickerTile(
-                          label: 'Working Start Time',
-                          value: _displayTime(_workingStartTime),
-                          onTap: () => _pickWorkingTime(isStartTime: true),
-                        ),
-                        const SizedBox(height: 12),
-                        // This block lets the institution pick the daily working end time.
-                        _timePickerTile(
-                          label: 'Working End Time',
-                          value: _displayTime(_workingEndTime),
-                          onTap: () => _pickWorkingTime(isStartTime: false),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _section(
-                    title: 'Status',
-                    child: SwitchListTile(
-                      value: _isActive,
-                      title: const Text('Service is active'),
-                      onChanged: (v) => setState(() => _isActive = v),
-                      activeColor: Colors.white,
-                      activeTrackColor: Colors.black,
-                      inactiveThumbColor: Colors.black,
-                      inactiveTrackColor: Colors.white,
-                      trackOutlineColor:
-                      MaterialStateProperty.all(Colors.black26),
-                    ),
+                  PortalPageHeader(
+                    overline: 'Service Setup',
+                    title: isEditMode ? 'Edit Service' : 'Add Service',
+                    subtitle:
+                    'Configure the service information, pricing, supported disabilities, and working hours.',
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  if (isDesktop)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 7,
+                          child: Column(
+                            children: [
+                              _section(
+                                title: 'Basic Information',
+                                child: Column(
+                                  children: [
+                                    _input(_nameController, 'Service Name'),
+                                    const SizedBox(height: 12),
+                                    _input(_categoryController, 'Category'),
+                                    const SizedBox(height: 12),
+                                    _input(
+                                      _descriptionController,
+                                      'Description',
+                                      maxLines: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              _section(
+                                title: 'Supported Disabilities',
+                                child: _buildDisabilityChips(),
+                              ),
+                              _section(
+                                title: 'Working Hours',
+                                child: _buildWorkingHoursSection(),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        isEditMode ? 'Update Service' : 'Create Service',
-                        style: const TextStyle(fontSize: 16),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          flex: 5,
+                          child: Column(
+                            children: [
+                              _section(
+                                title: 'Pricing',
+                                child: _buildPricingSection(),
+                              ),
+                              _section(
+                                title: 'Service Details',
+                                child: _buildServiceDetailsSection(),
+                              ),
+                              _section(
+                                title: 'Status',
+                                child: _buildStatusSection(),
+                              ),
+                              _buildSaveButton(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else ...[
+                    _section(
+                      title: 'Basic Information',
+                      child: Column(
+                        children: [
+                          _input(_nameController, 'Service Name'),
+                          const SizedBox(height: 12),
+                          _input(_categoryController, 'Category'),
+                          const SizedBox(height: 12),
+                          _input(
+                            _descriptionController,
+                            'Description',
+                            maxLines: 3,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                    _section(
+                      title: 'Pricing',
+                      child: _buildPricingSection(),
+                    ),
+                    _section(
+                      title: 'Service Details',
+                      child: _buildServiceDetailsSection(),
+                    ),
+                    _section(
+                      title: 'Supported Disabilities',
+                      child: _buildDisabilityChips(),
+                    ),
+                    _section(
+                      title: 'Working Hours',
+                      child: _buildWorkingHoursSection(),
+                    ),
+                    _section(
+                      title: 'Status',
+                      child: _buildStatusSection(),
+                    ),
+                    const SizedBox(height: 4),
+                    _buildSaveButton(),
+                  ],
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -464,33 +395,201 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
     );
   }
 
+  Widget _buildPricingSection() {
+    return Column(
+      children: [
+        _switchTile(
+          value: _isFree,
+          title: 'Is this service free?',
+          onChanged: (v) => setState(() => _isFree = v),
+        ),
+        if (!_isFree) ...[
+          const SizedBox(height: 12),
+          _input(
+            _priceController,
+            'Price',
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildServiceDetailsSection() {
+    return Column(
+      children: [
+        _input(
+          _durationController,
+          'Duration (minutes)',
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 12),
+        _dropdown(
+          'Location Mode',
+          _locationMode,
+          const ['on_site', 'home_visit', 'online'],
+              (v) => setState(() => _locationMode = v!),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDisabilityChips() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _allDisabilities.map((item) {
+        final selected = _selectedDisabilities.contains(item);
+        return FilterChip(
+          selected: selected,
+          label: Text(
+            item,
+            style: TextStyle(
+              color: selected ? Colors.white : Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          selectedColor: Colors.black,
+          backgroundColor: Colors.white,
+          checkmarkColor: Colors.white,
+          side: BorderSide(color: selected ? Colors.black : Colors.black26),
+          onSelected: (v) {
+            setState(() {
+              v
+                  ? _selectedDisabilities.add(item)
+                  : _selectedDisabilities.remove(item);
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildWorkingHoursSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _allWorkingDays.map((day) {
+            final selected = _selectedWorkingDays.contains(day);
+            return FilterChip(
+              selected: selected,
+              label: Text(
+                day,
+                style: TextStyle(
+                  color: selected ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              selectedColor: Colors.black,
+              backgroundColor: Colors.white,
+              checkmarkColor: Colors.white,
+              side: BorderSide(color: selected ? Colors.black : Colors.black26),
+              onSelected: (value) {
+                setState(() {
+                  if (value) {
+                    _selectedWorkingDays.add(day);
+                  } else {
+                    _selectedWorkingDays.remove(day);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 560;
+            final startTile = _timePickerTile(
+              label: 'Working Start Time',
+              value: _displayTime(_workingStartTime),
+              onTap: () => _pickWorkingTime(isStartTime: true),
+            );
+            final endTile = _timePickerTile(
+              label: 'Working End Time',
+              value: _displayTime(_workingEndTime),
+              onTap: () => _pickWorkingTime(isStartTime: false),
+            );
+
+            if (!isWide) {
+              return Column(
+                children: [
+                  startTile,
+                  const SizedBox(height: 12),
+                  endTile,
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                Expanded(child: startTile),
+                const SizedBox(width: 12),
+                Expanded(child: endTile),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusSection() {
+    return _switchTile(
+      value: _isActive,
+      title: 'Service is active',
+      onChanged: (v) => setState(() => _isActive = v),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _save,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          isEditMode ? 'Update Service' : 'Create Service',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
   // ---------- UI Helpers ----------
   Widget _section({required String title, required Widget child}) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.softShadow,
+            blurRadius: 14,
+            offset: Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text(title, style: AppTextStyles.sectionTitle.copyWith(fontSize: 17)),
+          const SizedBox(height: 14),
           child,
         ],
       ),
@@ -507,13 +606,12 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
-      validator: (v) =>
-      v == null || v.trim().isEmpty ? '$label is required' : null,
+      validator: (v) => v == null || v.trim().isEmpty ? '$label is required' : null,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.black),
         filled: true,
-        fillColor: const Color(0xFFF2F2F2), // neutral light grey
+        fillColor: const Color(0xFFF2F2F2),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -534,7 +632,7 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
       ) {
     return Theme(
       data: Theme.of(context).copyWith(
-        canvasColor: Colors.white, // ✅ background of dropdown menu
+        canvasColor: Colors.white,
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
       ),
@@ -555,7 +653,6 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
         )
             .toList(),
         onChanged: onChanged,
-        // ✅ dropdown list background
         dropdownColor: Colors.white,
         iconEnabledColor: Colors.black,
         style: const TextStyle(color: Colors.black),
@@ -573,6 +670,36 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
             borderSide: const BorderSide(color: Colors.black),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _switchTile({
+    required bool value,
+    required String title,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: SwitchListTile(
+        value: value,
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        onChanged: onChanged,
+        activeColor: Colors.white,
+        activeTrackColor: Colors.black,
+        inactiveThumbColor: Colors.black,
+        inactiveTrackColor: Colors.white,
+        trackOutlineColor: MaterialStateProperty.all(Colors.black26),
       ),
     );
   }
@@ -610,15 +737,15 @@ class _AddEditServiceViewState extends State<AddEditServiceView> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(color: Colors.black87),
-                  ),
+                  Text(value, style: const TextStyle(color: Colors.black87)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                size: 16, color: Colors.black54),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.black54,
+            ),
           ],
         ),
       ),

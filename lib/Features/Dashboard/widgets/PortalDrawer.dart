@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/Models/institutionModel.dart';
+import '../../../core/responsive/responsive_breakpoints.dart';
 import '../../../core/styles/AppColors.dart';
 import '../../../core/styles/AppTextStyles.dart';
 import '../../../core/supabase/institutionservice.dart';
@@ -8,8 +9,13 @@ import '../helper.dart';
 
 class PortalDrawer extends StatefulWidget {
   final String currentRoute;
+  final bool showAsDrawer;
 
-  const PortalDrawer({super.key, required this.currentRoute});
+  const PortalDrawer({
+    super.key,
+    required this.currentRoute,
+    this.showAsDrawer = true,
+  });
 
   @override
   State<PortalDrawer> createState() => _PortalDrawerState();
@@ -30,10 +36,12 @@ class _PortalDrawerState extends State<PortalDrawer> {
   Future<void> _loadProfile() async {
     try {
       final profile = await _service.getCurrentProfile();
-      if (mounted) setState(() {
-        _profile = profile;
-        _loadingProfile = false;
-      });
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _loadingProfile = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _loadingProfile = false);
     }
@@ -54,136 +62,185 @@ class _PortalDrawerState extends State<PortalDrawer> {
     }
   }
 
+  void _closeDrawerIfNeeded() {
+    if (widget.showAsDrawer && Navigator.of(context).canPop()) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _handleNavigation({
+    required String route,
+    required bool isSelected,
+    bool requiresSubscription = false,
+  }) async {
+    final router = GoRouter.of(context);
+
+    if (isSelected) {
+      _closeDrawerIfNeeded();
+      return;
+    }
+
+    if (requiresSubscription) {
+      final allowed = await checkSubscription(context);
+      if (!mounted) return;
+      _closeDrawerIfNeeded();
+      if (allowed) router.go(route);
+      return;
+    }
+
+    _closeDrawerIfNeeded();
+    router.go(route);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.background,
-      elevation: 0,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ───────── Header ─────────
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC5CE4E),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance,
-                      size: 24,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Portal',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // ───────── Profile Card ─────────
-              _loadingProfile
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildProfileCard(),
-              const SizedBox(height: 32),
-
-              // ───────── Navigation ─────────
-              _buildNavTile(
-                context,
-                icon: Icons.dashboard,
-                label: 'Dashboard',
-                route: '/Dashboard',
-              ),
-              _buildNavTile(
-                context,
-                icon: Icons.layers,
-                label: 'Services',
-                route: '/services',
-                requiresSubscription: true,
-              ),
-              _buildNavTile(
-                context,
-                icon: Icons.people,
-                label: 'Subscribers',
-                route: '/subscribers',
-              ),
-              _buildNavTile(
-                context,
-                icon: Icons.person_outline,
-                label: 'Profile',
-                route: '/profile',
-              ),
-              const Spacer(),
-
-              // ───────── Logout ─────────
-              _buildLogoutButton(),
-              const SizedBox(height: 16),
-
-              // ───────── Footer ─────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'DEPLOYMENT',
-                    style: AppTextStyles.description.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'V1.0.0',
-                    style: AppTextStyles.description.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    final content = SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 32),
+            _loadingProfile
+                ? const Center(child: CircularProgressIndicator())
+                : _buildProfileCard(),
+            const SizedBox(height: 32),
+            _buildNavTile(
+              context,
+              icon: Icons.dashboard,
+              label: 'Dashboard',
+              route: '/Dashboard',
+            ),
+            _buildNavTile(
+              context,
+              icon: Icons.layers,
+              label: 'Services',
+              route: '/services',
+              requiresSubscription: true,
+            ),
+            _buildNavTile(
+              context,
+              icon: Icons.people,
+              label: 'Subscribers',
+              route: '/subscribers',
+            ),
+            _buildNavTile(
+              context,
+              icon: Icons.person_outline,
+              label: 'Profile',
+              route: '/profile',
+            ),
+            const Spacer(),
+            _buildLogoutButton(),
+            const SizedBox(height: 16),
+            _buildFooter(),
+          ],
         ),
       ),
     );
+
+    if (widget.showAsDrawer) {
+      return Drawer(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        child: content,
+      );
+    }
+
+    return Container(
+      width: ResponsiveBreakpoints.sidebarWidth,
+      decoration: const BoxDecoration(
+        color: AppColors.sidebarBackground,
+        border: Border(
+          right: BorderSide(color: AppColors.divider),
+        ),
+      ),
+      child: content,
+    );
   }
 
-  // ─────────────────────────────────────────
-  // PROFILE CARD
-  // ─────────────────────────────────────────
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFC5CE4E),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.account_balance,
+            size: 24,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'Portal',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'DEPLOYMENT',
+          style: AppTextStyles.description.copyWith(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'V1.0.0',
+          style: AppTextStyles.description.copyWith(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildProfileCard() {
     final name = _profile?.name ?? 'Institution';
     final email = _profile?.email ?? '—';
     final type = _profile?.institutionType ?? '—';
     final phone = _profile?.phone ?? '—';
 
-    // Initials from name
     final parts = name.trim().split(' ');
     final initials = parts.length >= 2
         ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-        : name.isNotEmpty ? name[0].toUpperCase() : '?';
+        : name.isNotEmpty
+        ? name[0].toUpperCase()
+        : '?';
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.softShadow,
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar + name row
           Row(
             children: [
               CircleAvatar(
@@ -216,11 +273,11 @@ class _PortalDrawerState extends State<PortalDrawer> {
                       margin: const EdgeInsets.only(top: 4),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
-                        vertical: 2,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFC5CEFF),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         type.toUpperCase(),
@@ -236,14 +293,10 @@ class _PortalDrawerState extends State<PortalDrawer> {
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          const Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 12),
-
-          // Email
           _buildProfileDetail(Icons.email_outlined, email),
           const SizedBox(height: 8),
-
-          // Phone
           _buildProfileDetail(Icons.phone_outlined, phone),
         ],
       ),
@@ -269,9 +322,6 @@ class _PortalDrawerState extends State<PortalDrawer> {
     );
   }
 
-  // ─────────────────────────────────────────
-  // LOGOUT BUTTON
-  // ─────────────────────────────────────────
   Widget _buildLogoutButton() {
     return SizedBox(
       width: double.infinity,
@@ -306,9 +356,6 @@ class _PortalDrawerState extends State<PortalDrawer> {
     );
   }
 
-  // ─────────────────────────────────────────
-  // NAV ITEM
-  // ─────────────────────────────────────────
   Widget _buildNavTile(
       BuildContext context, {
         required IconData icon,
@@ -325,8 +372,11 @@ class _PortalDrawerState extends State<PortalDrawer> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Icon(icon,
-            color: isSelected ? AppColors.white : AppColors.textSecondary),
+        dense: !widget.showAsDrawer,
+        leading: Icon(
+          icon,
+          color: isSelected ? AppColors.white : AppColors.textSecondary,
+        ),
         title: Text(
           label,
           style: TextStyle(
@@ -336,32 +386,17 @@ class _PortalDrawerState extends State<PortalDrawer> {
           ),
         ),
         trailing: requiresSubscription
-            ? Icon(Icons.lock_outline,
-            size: 16,
-            color:
-            isSelected ? AppColors.white : AppColors.textSecondary)
+            ? Icon(
+          Icons.lock_outline,
+          size: 16,
+          color: isSelected ? AppColors.white : AppColors.textSecondary,
+        )
             : null,
-        onTap: () async {
-          // This preserves the existing navigation logic while avoiding navigation with a closed drawer context.
-          final router = GoRouter.of(context);
-
-          if (isSelected) {
-            Navigator.pop(context);
-            return;
-          }
-
-          if (requiresSubscription) {
-            final allowed = await checkSubscription(context);
-            if (!mounted) return;
-            Navigator.pop(context);
-            if (allowed) {
-              router.go(route);
-            }
-          } else {
-            Navigator.pop(context);
-            router.go(route);
-          }
-        },
+        onTap: () => _handleNavigation(
+          route: route,
+          isSelected: isSelected,
+          requiresSubscription: requiresSubscription,
+        ),
       ),
     );
   }

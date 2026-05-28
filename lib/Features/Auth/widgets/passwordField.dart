@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/styles/AppColors.dart';
 import 'AppTextField.dart';
-
 
 class PasswordField extends StatefulWidget {
   final TextEditingController controller;
@@ -37,11 +37,16 @@ class _PasswordFieldState extends State<PasswordField> {
             if (v.length < 6) return 'Minimum 6 characters';
             return null;
           },
-      prefixIcon: Icon(Icons.lock_outline, color: Colors.grey.shade600),
+      prefixIcon: const Icon(
+        Icons.lock_outline,
+        color: AppColors.iconGrey,
+      ),
       suffixIcon: IconButton(
         icon: Icon(
-          _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          color: Colors.grey.shade600,
+          _obscure
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          color: AppColors.iconGrey,
         ),
         onPressed: () => setState(() => _obscure = !_obscure),
       ),

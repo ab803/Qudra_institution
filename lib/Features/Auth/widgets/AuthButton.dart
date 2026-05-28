@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/styles/AppColors.dart';
+import '../../../core/styles/AppTextStyles.dart';
 import '../ViewModel/auth_cubit.dart';
 import '../ViewModel/auth_state.dart';
 
@@ -13,22 +15,24 @@ class AuthButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
-    this.borderRadius = 12,
+    this.borderRadius = 14,
     this.trailingIcon,
   });
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Reads loading state automatically — no need to pass isLoading manually
+    // This reads loading state automatically so auth screens do not pass loading manually.
     return BlocBuilder<InstitutionAuthCubit, InstitutionAuthState>(
       builder: (context, state) {
         final isLoading = state is InstitutionAuthLoading;
+
         return SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
+              backgroundColor: AppColors.textPrimary,
+              foregroundColor: AppColors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(borderRadius),
@@ -40,21 +44,14 @@ class AuthButton extends StatelessWidget {
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
-                color: Colors.white,
+                color: AppColors.white,
                 strokeWidth: 2.5,
               ),
             )
                 : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(label, style: AppTextStyles.button),
                 if (trailingIcon != null) ...[
                   const SizedBox(width: 8),
                   trailingIcon!,
